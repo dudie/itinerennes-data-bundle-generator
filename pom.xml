@@ -69,6 +69,11 @@
     </repositories>
 
     <dependencies>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-context</artifactId>
+			<version>3.2.4.RELEASE</version>
+		</dependency>
         <dependency>
             <groupId>args4j</groupId>
             <artifactId>args4j</artifactId>

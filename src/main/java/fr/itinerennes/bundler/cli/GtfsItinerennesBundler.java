@@ -2,8 +2,10 @@ package fr.itinerennes.bundler.cli;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Map;
 
+import org.apache.commons.io.IOUtils;
 import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
@@ -11,9 +13,12 @@ import org.kohsuke.args4j.Option;
 import org.onebusaway.gtfs.services.GtfsRelationalDao;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.GenericXmlApplicationContext;
 
 import fr.itinerennes.bundler.gtfs.GtfsException;
 import fr.itinerennes.bundler.gtfs.GtfsUtils;
+import fr.itinerennes.bundler.tasks.AbstractTask;
 import fr.itinerennes.onebusaway.bundle.tasks.GenerateMarkersCsvTask;
 import fr.itinerennes.onebusaway.bundle.tasks.GenerateRoutesAndStopsCsvTask;
 import fr.itinerennes.onebusaway.bundle.tasks.GenerateTripsCsvTask;
@@ -46,36 +51,52 @@ public class GtfsItinerennesBundler {
      */
     public static void main(final String[] args) throws IOException {
 
-        new GtfsItinerennesBundler().doMain(args);
+        final GtfsItinerennesBundler main = new GtfsItinerennesBundler();
+        
+        main.parseCmdLine(args);
+        GenericXmlApplicationContext ctx = null;
+        try {
+        	ctx = new GenericXmlApplicationContext("classpath:/application-context.xml");
+            final Collection<AbstractTask> tasks = ctx.getBeansOfType(AbstractTask.class).values();
+            main.execute(tasks);
+        } finally {
+        	IOUtils.closeQuietly(ctx);
+        }
     }
 
-    private void doMain(final String[] args) throws IOException {
+    private void parseCmdLine(final String[] args) {
 
         final CmdLineParser parser = new CmdLineParser(this);
 
+        // parse the arguments
         try {
-            // parse the arguments.
             parser.parseArgument(args);
-
-            if (help) {
-                printUsageAndExit(parser, 0);
-            }
-
-            if (output == null) {
-                output = new File(".");
-            }
-            if (output.exists() && output.isFile()) {
-                throw new CmdLineException(parser, output + " already exists and is a regular file");
-            } else if (!output.exists()) {
-                output.mkdirs();
-            }
-            LOGGER.info("output will be written to {}", output.toURI());
-
         } catch (final CmdLineException e) {
             System.err.println(e.getMessage());
             printUsageAndExit(parser, 1);
         }
 
+        // print usage
+        if (help) {
+            printUsageAndExit(parser, 0);
+        }
+
+        // default output folder is current directory
+        if (output == null) {
+            output = new File(".");
+        }
+        
+        // ensure output is a directory
+        if (output.exists() && output.isFile()) {
+            System.err.println(output + " already exists and is a regular file");
+            printUsageAndExit(parser, 1);
+        } else if (!output.exists()) {
+            output.mkdirs();
+            LOGGER.info("output will be written to {}", output.toURI());
+        }
+    }
+
+    private void execute(final Collection<AbstractTask> tasks) throws IOException {
         try {
             // load GTFS data
             final GtfsRelationalDao gtfsDao = GtfsUtils.load(gtfsFile, agencyMapping);
@@ -96,6 +117,6 @@ public class GtfsItinerennesBundler {
                 "java %s <GTFS> -k <API_KEY> [-o <OUTPUT>] [-am <AGENCY_MAPPING>]", this.getClass()
                         .getName()));
         parser.printUsage(System.err);
-        System.exit(1);
+        System.exit(status);
     }
 }

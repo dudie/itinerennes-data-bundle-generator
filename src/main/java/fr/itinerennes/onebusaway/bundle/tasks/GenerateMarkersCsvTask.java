@@ -18,14 +18,12 @@ import org.onebusaway.gtfs.services.GtfsDao;
 import org.onebusaway.gtfs.services.GtfsRelationalDao;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 
 import fr.dudie.keolis.client.JsonKeolisClient;
 import fr.dudie.keolis.client.KeolisClient;
 import fr.dudie.keolis.model.BikeStation;
 import fr.dudie.keolis.model.SubwayStation;
-
-import fr.itinerennes.bundler.config.Property;
-import fr.itinerennes.bundler.config.PropertyAnnotations;
 import fr.itinerennes.commons.utils.StringUtils;
 
 /**
@@ -51,7 +49,7 @@ public class GenerateMarkersCsvTask implements Runnable {
     /** The output file. */
     private final File outputFile;
 
-    @Property("keolisApiUrl")
+    @Value("${keolisApiUrl}")
     private String keolisApiUrl;
 
     /**
@@ -68,8 +66,6 @@ public class GenerateMarkersCsvTask implements Runnable {
      */
     public GenerateMarkersCsvTask(final GtfsRelationalDao gtfsDao, final File output,
             final String keolisApiKey) throws IOException {
-
-        PropertyAnnotations.process("/default-config.properties", this);
 
         outputFile = new File(output, "markers.csv");
 
