@@ -2,23 +2,33 @@ package fr.itinerennes.bundler.cli;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.annotation.Annotation;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Deque;
 import java.util.Map;
+import java.util.regex.Pattern;
+
+import javax.management.StringValueExp;
 
 import org.apache.commons.io.IOUtils;
 import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
+import org.onebusaway.gtfs.services.GtfsDao;
 import org.onebusaway.gtfs.services.GtfsRelationalDao;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.context.support.FileSystemXmlApplicationContext;
 import org.springframework.context.support.GenericXmlApplicationContext;
+import org.springframework.util.StringValueResolver;
 
 import fr.itinerennes.bundler.gtfs.GtfsException;
 import fr.itinerennes.bundler.gtfs.GtfsUtils;
-import fr.itinerennes.bundler.tasks.AbstractTask;
+import fr.itinerennes.bundler.tasks.framework.AbstractTask;
 import fr.itinerennes.onebusaway.bundle.tasks.GenerateMarkersCsvTask;
 import fr.itinerennes.onebusaway.bundle.tasks.GenerateRoutesAndStopsCsvTask;
 import fr.itinerennes.onebusaway.bundle.tasks.GenerateTripsCsvTask;
@@ -52,11 +62,13 @@ public class GtfsItinerennesBundler {
     public static void main(final String[] args) throws IOException {
 
         final GtfsItinerennesBundler main = new GtfsItinerennesBundler();
-        
         main.parseCmdLine(args);
-        GenericXmlApplicationContext ctx = null;
+
+        ClassPathXmlApplicationContext ctx = null;
         try {
-        	ctx = new GenericXmlApplicationContext("classpath:/application-context.xml");
+        	ctx = new ClassPathXmlApplicationContext("classpath:/application-context.xml");
+        	ctx.getBeanFactory().addEmbeddedValueResolver(new ProgramArgumentValueResolver(main));
+        	ctx.start();
             final Collection<AbstractTask> tasks = ctx.getBeansOfType(AbstractTask.class).values();
             main.execute(tasks);
         } finally {
@@ -119,4 +131,30 @@ public class GtfsItinerennesBundler {
         parser.printUsage(System.err);
         System.exit(status);
     }
+
+	private static class ProgramArgumentValueResolver implements StringValueResolver {
+		
+		private static final Pattern ARG = Pattern.compile("^program\\.args\\.\\w+$");
+
+		private final GtfsItinerennesBundler program;
+
+		public ProgramArgumentValueResolver(final GtfsItinerennesBundler program) {
+			this.program = program;
+		}
+		
+		@Override
+		public String resolveStringValue(final String key) {
+			final String fieldName = key.replaceAll("^program\\.\\w{4}\\.", "");
+			if (ARG.matcher(key).matches()) {
+				try {
+					return String.valueOf(program.getClass().getField(fieldName).get(program));
+				} catch (final Exception e) {
+					LOGGER.error("Can't resolve property value for key {}", key);
+					return null;
+				}
+			} else {
+				return null;
+			}
+		}
+	}
 }
