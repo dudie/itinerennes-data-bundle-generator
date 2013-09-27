@@ -2,7 +2,6 @@ package fr.itinerennes.bundler.gtfs;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.zip.ZipException;
@@ -41,7 +40,7 @@ public final class GtfsUtils {
      */
     public static GtfsRelationalDao load(final File gtfsFile) throws GtfsException {
 
-        return load(gtfsFile, Collections.<String, String> emptyMap());
+        return load(gtfsFile, null);
     }
 
     /**
@@ -68,11 +67,13 @@ public final class GtfsUtils {
             reader.setInputSource(source);
             reader.setEntityStore(gtfsDao);
 
-            for (final Entry<String, String> mapping : agencyMappings.entrySet()) {
-                final String fromAgencyId = mapping.getKey();
-                final String toAgencyId = mapping.getValue();
-                reader.addAgencyIdMapping(fromAgencyId, toAgencyId);
-                LOGGER.debug("Mapping agency '{}' to '{}'", fromAgencyId, toAgencyId);
+            if (null != agencyMappings) {
+                for (final Entry<String, String> mapping : agencyMappings.entrySet()) {
+                    final String fromAgencyId = mapping.getKey();
+                    final String toAgencyId = mapping.getValue();
+                    reader.addAgencyIdMapping(fromAgencyId, toAgencyId);
+                    LOGGER.debug("Mapping agency '{}' to '{}'", fromAgencyId, toAgencyId);
+                }
             }
             reader.run();
 

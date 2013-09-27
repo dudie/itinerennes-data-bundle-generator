@@ -2,36 +2,24 @@ package fr.itinerennes.bundler.cli;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Deque;
 import java.util.Map;
-import java.util.regex.Pattern;
-
-import javax.management.StringValueExp;
+import java.util.Properties;
 
 import org.apache.commons.io.IOUtils;
 import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
-import org.onebusaway.gtfs.services.GtfsDao;
-import org.onebusaway.gtfs.services.GtfsRelationalDao;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationContext;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.support.GenericBeanDefinition;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.context.support.FileSystemXmlApplicationContext;
-import org.springframework.context.support.GenericXmlApplicationContext;
-import org.springframework.util.StringValueResolver;
+import org.springframework.context.support.GenericApplicationContext;
 
-import fr.itinerennes.bundler.gtfs.GtfsException;
-import fr.itinerennes.bundler.gtfs.GtfsUtils;
 import fr.itinerennes.bundler.tasks.framework.AbstractTask;
-import fr.itinerennes.onebusaway.bundle.tasks.GenerateMarkersCsvTask;
-import fr.itinerennes.onebusaway.bundle.tasks.GenerateRoutesAndStopsCsvTask;
-import fr.itinerennes.onebusaway.bundle.tasks.GenerateTripsCsvTask;
 
 /**
  * @author Jérémie Huchet
@@ -64,15 +52,41 @@ public class GtfsItinerennesBundler {
         final GtfsItinerennesBundler main = new GtfsItinerennesBundler();
         main.parseCmdLine(args);
 
+        final GenericApplicationContext bootCtx = new GenericApplicationContext();
+        final BeanDefinition programArgsDef = new GenericBeanDefinition();
+        programArgsDef.setBeanClassName(Properties.class.getName());
+        bootCtx.registerBeanDefinition("programArgs", programArgsDef);
+
         ClassPathXmlApplicationContext ctx = null;
         try {
-        	ctx = new ClassPathXmlApplicationContext("classpath:/application-context.xml");
-        	ctx.getBeanFactory().addEmbeddedValueResolver(new ProgramArgumentValueResolver(main));
-        	ctx.start();
+            LOGGER.info("Initialization...");
+            bootCtx.refresh();
+            bootCtx.start();
+            main.loadArguments(bootCtx.getBean("programArgs", Properties.class));
+            ctx = new ClassPathXmlApplicationContext(new String[] { "classpath:/application-context.xml" }, bootCtx);
+            LOGGER.info("Application context initialization finished");
             final Collection<AbstractTask> tasks = ctx.getBeansOfType(AbstractTask.class).values();
+            LOGGER.info("Start tasks execution...");
             main.execute(tasks);
+            LOGGER.info("Tasks execution finished");
         } finally {
-        	IOUtils.closeQuietly(ctx);
+            IOUtils.closeQuietly(ctx);
+            IOUtils.closeQuietly(bootCtx);
+        }
+    }
+
+    private void loadArguments(final Properties p) {
+        for (final Field f : getClass().getDeclaredFields()) {
+            if (f.isAnnotationPresent(Option.class) || f.isAnnotationPresent(Argument.class)) {
+                try {
+                    final String name = String.format("program.args.%s", f.getName());
+                    final String value = String.valueOf(f.get(this));
+                    p.setProperty(name, value);
+                    LOGGER.info("Adding property {}={} to application context", name, value);
+                } catch (final Exception e) {
+                    throw new RuntimeException("unable to retrieve field values", e);
+                }
+            }
         }
     }
 
@@ -97,7 +111,7 @@ public class GtfsItinerennesBundler {
         if (output == null) {
             output = new File(".");
         }
-        
+
         // ensure output is a directory
         if (output.exists() && output.isFile()) {
             System.err.println(output + " already exists and is a regular file");
@@ -108,53 +122,17 @@ public class GtfsItinerennesBundler {
         }
     }
 
-    private void execute(final Collection<AbstractTask> tasks) throws IOException {
-        try {
-            // load GTFS data
-            final GtfsRelationalDao gtfsDao = GtfsUtils.load(gtfsFile, agencyMapping);
-
-            // execute tasks
-            new GenerateMarkersCsvTask(gtfsDao, output, keolisApiKey).run();
-            new GenerateRoutesAndStopsCsvTask(gtfsDao, output).run();
-            new GenerateRoutesAndStopsCsvTask(gtfsDao, output).run();
-            new GenerateTripsCsvTask(gtfsDao, output).run();
-        } catch (final GtfsException e) {
-            LOGGER.error("Unable to load GTFS data", e);
+    private <T extends Runnable> void execute(final Collection<T> tasks) throws IOException {
+        // execute tasks
+        for (final Runnable t : tasks) {
+            t.run();
         }
     }
 
     private void printUsageAndExit(final CmdLineParser parser, final int status) {
 
-        System.err.println(String.format(
-                "java %s <GTFS> -k <API_KEY> [-o <OUTPUT>] [-am <AGENCY_MAPPING>]", this.getClass()
-                        .getName()));
+        System.err.println(String.format("java %s <GTFS> -k <API_KEY> [-o <OUTPUT>] [-am <AGENCY_MAPPING>]", this.getClass().getName()));
         parser.printUsage(System.err);
         System.exit(status);
     }
-
-	private static class ProgramArgumentValueResolver implements StringValueResolver {
-		
-		private static final Pattern ARG = Pattern.compile("^program\\.args\\.\\w+$");
-
-		private final GtfsItinerennesBundler program;
-
-		public ProgramArgumentValueResolver(final GtfsItinerennesBundler program) {
-			this.program = program;
-		}
-		
-		@Override
-		public String resolveStringValue(final String key) {
-			final String fieldName = key.replaceAll("^program\\.\\w{4}\\.", "");
-			if (ARG.matcher(key).matches()) {
-				try {
-					return String.valueOf(program.getClass().getField(fieldName).get(program));
-				} catch (final Exception e) {
-					LOGGER.error("Can't resolve property value for key {}", key);
-					return null;
-				}
-			} else {
-				return null;
-			}
-		}
-	}
 }

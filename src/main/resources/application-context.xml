@@ -1,15 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns:context="http://www.springframework.org/schema/context" xmlns:aop="http://www.springframework.org/schema/aop"
-    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
-http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.1.xsd
-http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.1.xsd">
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.2.xsd
+http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.2.xsd">
 
-    <context:propertyPlaceholder location="classpath:/default-config.properties" />
+    <context:property-placeholder location="classpath:/default-config.properties" properties-ref="programArgs" />
+    <context:component-scan base-package="fr.itinerennes.bundler.tasks" />
 
-    <context:component-scan base-package="fr.itinerennes.onebusaway.bundle" />
+    <import resource="classpath:/application-context-cache.xml"/>
 
-	<bean class="fr.itinerennes.bundler.gtfs.GtfsUtils" factory-method="load">
+	<bean id="gtfsDao" class="fr.itinerennes.bundler.gtfs.GtfsUtils" factory-method="load">
 		<constructor-arg index="0" value="${program.args.gtfsFile}" />
 	</bean>
+	
+	<bean id="httpClient" class="org.apache.http.impl.client.DefaultHttpClient">
+	   <!-- TODO make this thread-safe -->
+	</bean>
+	
+    <bean id="keolisClient" class="fr.dudie.keolis.client.JsonKeolisClient">
+       <constructor-arg index="0" ref="httpClient" />
+       <constructor-arg index="1" value="${keolisApiUrl}"/>
+       <constructor-arg index="2" value="${program.args.keolisApiKey}"/>
+    </bean>
 </beans>
