@@ -16,13 +16,15 @@ import org.springframework.stereotype.Component;
 import fr.dudie.keolis.client.KeolisClient;
 import fr.dudie.keolis.model.BikeStation;
 import fr.dudie.keolis.model.SubwayStation;
+import fr.itinerennes.bundler.tasks.framework.AbstractCountedCsvTask;
+import fr.itinerennes.bundler.tasks.framework.PreExec;
 import fr.itinerennes.commons.utils.StringUtils;
 
 /**
  * @author Jérémie Huchet
  */
 @Component
-public class MarkersCsvTask extends AbstractCsvTask {
+public class MarkersCsvTask extends AbstractCountedCsvTask {
 
     /** The event logger. */
     private static final Logger LOGGER = LoggerFactory.getLogger(MarkersCsvTask.class);
@@ -47,37 +49,22 @@ public class MarkersCsvTask extends AbstractCsvTask {
         super(MARKERS_CSV_FILENAME);
     }
 
-    @PostConstruct
+    @PreExec
     public void loadBusStations() {
         busStops.addAll(gtfsDao.getAllStops());
         LOGGER.info("loaded {} bus stations", busStops.size());
     }
 
-    @PostConstruct
+    @PreExec
     public void loadBikeStations() throws IOException {
         bikeStations.addAll(keolis.getAllBikeStations());
         LOGGER.info("loaded {} bike stations", bikeStations.size());
-        bikeStations.addAll(keolis.getAllBikeStations());
-        LOGGER.info("loaded {} bike stations", bikeStations.size());
-        bikeStations.addAll(keolis.getAllBikeStations());
-        LOGGER.info("loaded {} bike stations", bikeStations.size());
-        bikeStations.addAll(keolis.getAllBikeStations());
-        LOGGER.info("loaded {} bike stations", bikeStations.size());
-        bikeStations.addAll(keolis.getAllBikeStations());
-        LOGGER.info("loaded {} bike stations", bikeStations.size());
-        bikeStations.addAll(keolis.getAllBikeStations());
-        LOGGER.info("loaded {} bike stations", bikeStations.size());
     }
 
-    @PostConstruct
+    @PreExec
     public void loadSubwayStations() throws IOException {
         subwayStations.addAll(keolis.getAllSubwayStations());
         LOGGER.info("loaded {} subway stations", subwayStations.size());
-    }
-
-    @Override
-    protected int getLineCount() {
-        return busStops.size() + bikeStations.size() + subwayStations.size();
     }
 
     @Override

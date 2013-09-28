@@ -1,4 +1,4 @@
-package fr.itinerennes.bundler.tasks;
+package fr.itinerennes.bundler.tasks.framework;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -14,40 +14,57 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 
-import fr.itinerennes.bundler.tasks.framework.AbstractTask;
 import fr.itinerennes.onebusaway.bundle.tasks.GenerateMarkersCsvTask;
 
+/**
+ * Helper to generate a CSV file.
+ * 
+ * @author Jeremie Huchet
+ */
 public abstract class AbstractCsvTask extends AbstractTask {
 
     /** The event logger. */
     private static final Logger LOGGER = LoggerFactory.getLogger(GenerateMarkersCsvTask.class);
 
     /** The UTF-8 charset. */
-    private static final Charset CHARSET = Charset.forName("UTF-8");
+    public static final Charset CHARSET = Charset.forName("UTF-8");
 
+    /** The name of the generated file. */
     private final String filename;
 
     /** The output file. */
     @Value("${program.args.output}")
     private String outputDir;
 
+    /** Writer to the output file. */
     private BufferedWriter out = null;
 
+    /**
+     * @param filename
+     *            the final name of the generated file
+     */
     public AbstractCsvTask(final String filename) {
-        final Pattern csv = Pattern.compile("\\.csv", Pattern.CASE_INSENSITIVE);
-        if (csv.matcher(filename).matches()) {
+        final Pattern csv = Pattern.compile("\\.csv$", Pattern.CASE_INSENSITIVE);
+        if (csv.matcher(filename).find()) {
             this.filename = filename;
         } else {
             this.filename = String.format("%s.csv", filename);
         }
     }
 
+    /**
+     * <ol>
+     * <li>opens the output file</li>
+     * <li>write the total line count</li>
+     * <li>invokes {@link #generateLines()} to let subclasses write lines, see {@link #writeLine(Object...)}</li>
+     * </ol>
+     * 
+     * @see fr.itinerennes.bundler.tasks.framework.AbstractTask#execute()
+     */
     @Override
     protected final void execute() {
         try {
-            out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(new File(outputDir, filename)), CHARSET));
-            out.write(String.valueOf(getLineCount()));
-            out.newLine();
+            out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(getOutputFile()), CHARSET));
             generateLines();
         } catch (final FileNotFoundException e) {
             LOGGER.error("output file not found", e);
@@ -58,6 +75,17 @@ public abstract class AbstractCsvTask extends AbstractTask {
         }
     }
 
+    protected final File getOutputFile() {
+        return new File(outputDir, filename);
+    }
+
+    /**
+     * Subclasses should use this to write a line to the output file.
+     * 
+     * @param values
+     *            the values to be written
+     * @throws IOException
+     */
     protected void writeLine(final Object... values) throws IOException {
         final StringBuilder csv = new StringBuilder();
         for (final Object v : values) {
@@ -66,8 +94,6 @@ public abstract class AbstractCsvTask extends AbstractTask {
         out.write(csv.toString());
         out.newLine();
     }
-
-    protected abstract int getLineCount();
 
     /**
      * Subclasses should invoke {@link #writeLine(Object...)}.

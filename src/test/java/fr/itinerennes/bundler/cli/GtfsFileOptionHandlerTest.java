@@ -138,6 +138,6 @@ public final class GtfsFileOptionHandlerTest {
 
         handler.parseArguments(params);
 
-        verify(setter, times(1));
+        verify(setter, times(1)).addValue(any(GtfsRelationalDao.class));;
     }
 }
