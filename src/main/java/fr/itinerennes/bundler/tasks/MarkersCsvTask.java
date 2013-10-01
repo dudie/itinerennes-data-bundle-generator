@@ -4,8 +4,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.annotation.PostConstruct;
-
 import org.onebusaway.gtfs.model.Stop;
 import org.onebusaway.gtfs.services.GtfsDao;
 import org.slf4j.Logger;
