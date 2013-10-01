@@ -6,6 +6,8 @@ http://www.springframework.org/schema/context http://www.springframework.org/sch
 http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.2.xsd">
 
     <context:property-placeholder location="classpath:/default-config.properties" properties-ref="programArgs" />
+
+    <context:component-scan base-package="fr.itinerennes.bundler.gtfs" />
     <context:component-scan base-package="fr.itinerennes.bundler.tasks" />
 
     <import resource="classpath:/application-context-cache.xml"/>
