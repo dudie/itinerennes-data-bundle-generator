@@ -1,9 +1,7 @@
 package fr.itinerennes.bundler.gtfs;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collections;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.TimeZone;
@@ -11,10 +9,12 @@ import java.util.TimeZone;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.Predicate;
 import org.onebusaway.gtfs.model.AgencyAndId;
+import org.onebusaway.gtfs.model.Route;
 import org.onebusaway.gtfs.model.ServiceCalendar;
 import org.onebusaway.gtfs.model.ServiceCalendarDate;
 import org.onebusaway.gtfs.model.Stop;
 import org.onebusaway.gtfs.model.StopTime;
+import org.onebusaway.gtfs.model.Trip;
 import org.onebusaway.gtfs.model.calendar.ServiceDate;
 import org.onebusaway.gtfs.services.GtfsRelationalDao;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -117,5 +117,37 @@ public class GtfsAdvancedDao {
             }
         });
         return stopTimes;
+    }
+
+    public Trip getPreviousTrip(final Trip current, final ServiceDate date) {
+        final StopTime tripFirst = gtfs.getStopTimesForTrip(current).get(0);
+        final List<StopTime> stopTimes = getStopTimes(tripFirst.getStop(), date);
+        final Iterator<StopTime> i = stopTimes.iterator();
+        StopTime prev = null, result = null;
+        while (result == null && i.hasNext()) {
+            final StopTime st = i.next();
+            if (st.equals(tripFirst)) {
+                result = prev;
+            } else {
+                prev = st;
+            }
+        }
+        return null == result ? null : result.getTrip();
+    }
+
+    public Trip getNextTrip(Trip current, ServiceDate date) {
+        final StopTime tripFirst = gtfs.getStopTimesForTrip(current).get(0);
+        final List<StopTime> stopTimes = getStopTimes(tripFirst.getStop(), date);
+        final Iterator<StopTime> i = stopTimes.iterator();
+        StopTime next = null;
+        while (next == null && i.hasNext()) {
+            final StopTime st = i.next();
+            if (st.equals(tripFirst)) {
+                if (i.hasNext()) {
+                    next = i.next();
+                }
+            }
+        }
+        return null == next ? null : next.getTrip();
     }
 }

@@ -1,16 +1,16 @@
 package fr.itinerennes.bundler.tasks;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.io.Writer;
 import java.util.Date;
 
 import org.apache.commons.io.IOUtils;
 import org.onebusaway.gtfs.model.Route;
 import org.onebusaway.gtfs.model.Stop;
 import org.onebusaway.gtfs.model.StopTime;
+import org.onebusaway.gtfs.model.Trip;
 import org.onebusaway.gtfs.model.calendar.ServiceDate;
 import org.onebusaway.gtfs.services.GtfsRelationalDao;
 import org.slf4j.Logger;
@@ -20,10 +20,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
+import fr.dudie.onebusaway.gson.OneBusAwayGsonFactory;
 import fr.dudie.onebusaway.model.ScheduleStopTime;
 import fr.dudie.onebusaway.model.StopSchedule;
+import fr.dudie.onebusaway.model.Time;
+import fr.dudie.onebusaway.model.TripSchedule;
+import fr.dudie.onebusaway.model.TripStopTime;
 import fr.itinerennes.bundler.gtfs.GtfsAdvancedDao;
 import fr.itinerennes.bundler.tasks.framework.AbstractTask;
 
@@ -32,7 +35,7 @@ public class ScheduleForStopTask extends AbstractTask {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ScheduleForStopTask.class);
 
-    private final Gson gson = new Gson();
+    private final Gson gson = OneBusAwayGsonFactory.newInstance();
 
     @Value("${program.args.output}")
     private String output;
@@ -45,34 +48,76 @@ public class ScheduleForStopTask extends AbstractTask {
 
     @Override
     protected void execute() {
-        LOGGER.info("starting SST task");
         for (final ServiceDate d : xGtfs.getAllServiceDates()) {
+            LOGGER.info("generating {}", d);
+            final File scheduleForStopOutput = mkdir(d, "schedule-for-stop");
             for (final Stop s : gtfs.getAllStops()) {
-                LOGGER.info("generating schedule-for-stop {} {}", d.toString(), s.toString());
-                generateScheduleForStop(s, d);
+                generateScheduleForStop(scheduleForStopOutput, s, d);
             }
-            // for (final Trip t : gtfs.getAllTrips()) {
-            //
-            // }
+            final File scheduleForTripOutput = mkdir(d, "schedule-for-trip");
+            for (final Trip t : gtfs.getAllTrips()) {
+                generateScheduleForTrip(scheduleForTripOutput, t, d);
+            }
         }
     }
 
-    private void generateScheduleForStop(Stop s, ServiceDate sd) {
-        final String parent = String.format("%s/schedule-for-stop/%04d/%02d/%02d", output, sd.getYear(), sd.getMonth(), sd.getDay());
-        new File(parent).mkdirs();
+    private void generateScheduleForTrip(File output, Trip t, ServiceDate sd) {
+        final TripSchedule sched = new TripSchedule();
+        final Trip prev = xGtfs.getPreviousTrip(t, sd);
+        if (null != prev) {
+            sched.setPreviousTripId(prev.getId().toString());
+        }
+        final Trip next = xGtfs.getNextTrip(t, sd);
+        if (null != next) {
+            sched.setNextTripId(next.getId().toString());
+        }
+        for (final StopTime st : gtfs.getStopTimesForTrip(t)) {
+            sched.getStopTimes().add(toStripStopTime(st));
+        }
+        write(new File(output, t.getId().toString()), sched);
+    }
+
+    private TripStopTime toStripStopTime(StopTime st) {
+        final TripStopTime tst = new TripStopTime();
+        tst.setArrivalTime(new Time(st.getArrivalTime()));
+        tst.setDepartureTime(new Time(st.getDepartureTime()));
+        tst.setDistanceAlongTrip(null);
+        tst.setStop(toStop(st.getStop()));
+        tst.setStopHeadsign(st.getStopHeadsign());
+        return tst;
+    }
+
+    private File mkdir(final ServiceDate sd, final String entity) {
+        final String parent = String.format("%s/%s/%04d/%02d/%02d", output, entity, sd.getYear(), sd.getMonth(), sd.getDay());
+        final File dir = new File(parent);
+        dir.mkdirs();
+        return dir;
+    }
+
+    private void generateScheduleForStop(File output, Stop s, ServiceDate sd) {
 
         final StopSchedule sched = new StopSchedule();
         sched.setDate(sd.getAsDate());
         sched.setStop(toStop(s));
+
         for (final StopTime st : xGtfs.getStopTimes(s, sd)) {
             sched.getStopTimes().add(toScheduledStopTime(st));
+            final fr.dudie.onebusaway.model.Route route = toRoute(st.getTrip().getRoute());
+            if (!sched.getRoutes().contains(route)) {
+                sched.getRoutes().add(route);
+            }
         }
-        BufferedWriter w = null;
+
+        write(new File(output, String.format("%s.json", s.getId())), sched);
+    }
+
+    private void write(File outputFile, Object o) {
+        Writer w = null;
         try {
-            w = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(new File(parent, s.getId().getId()))));
-            w.write(gson.toJson(sched));
+            w = new PrintWriter(outputFile, "utf-8");
+            w.write(gson.toJson(o));
         } catch (IOException e) {
-            LOGGER.error("Can't serialize {}", new Object[] { parent, e });
+            LOGGER.error("Can't serialize {} {}", new Object[] { o, outputFile, e });
         } finally {
             IOUtils.closeQuietly(w);
         }
@@ -83,7 +128,8 @@ public class ScheduleForStopTask extends AbstractTask {
         sst.setArrivalTime(new Date(gStopTime.getArrivalTime()));
         sst.setDepartureTime(new Date(gStopTime.getDepartureTime()));
         sst.setHeadsign(gStopTime.getTrip().getTripHeadsign());
-        sst.setRoute(toRoute(gStopTime.getTrip().getRoute()));
+        // routes are set as global entities
+        // sst.setRoute(toRoute(gStopTime.getTrip().getRoute()));
         sst.setServiceId(gStopTime.getTrip().getServiceId().toString());
         return sst;
     }
