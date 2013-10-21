@@ -72,8 +72,9 @@ public class GtfsAdvancedDao {
 
                     @Override
                     public ServiceDate next() {
+                        final ServiceDate current = next;
                         next = next.next(TimeZone.getDefault());
-                        return next;
+                        return current;
                     }
 
                     @Override
@@ -104,12 +105,12 @@ public class GtfsAdvancedDao {
                 for (final ServiceCalendarDate scd : exceptions) {
                     if (1 == scd.getExceptionType()) {
                         additions.add(scd.getDate());
-                    } else if (1 == scd.getExceptionType()) {
+                    } else if (2 == scd.getExceptionType()) {
                         removals.add(scd.getDate());
                     }
                 }
 
-                if (start.compareTo(date) <= 0 && end.compareTo(date) >= 0 && !removals.contains(date) || additions.contains(date)) {
+                if (start.compareTo(date) <= 0 && end.compareTo(date) >= 0 && (!removals.contains(date) || additions.contains(date))) {
                     return true;
                 } else {
                     return false;
