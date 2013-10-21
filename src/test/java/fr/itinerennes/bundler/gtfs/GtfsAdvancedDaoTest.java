@@ -7,6 +7,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Calendar;
 import java.util.List;
+import java.util.TimeZone;
 
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -70,5 +71,10 @@ public class GtfsAdvancedDaoTest {
             System.out.println(st);
         }
         
+    }
+    
+    @Test
+    public void testGetTimeZone() {
+        assertThat(advancedDao.getTimeZone("1")).isEqualTo(TimeZone.getTimeZone("Europe/Paris"));
     }
 }

@@ -8,6 +8,7 @@ import java.util.TimeZone;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.Predicate;
+import org.onebusaway.gtfs.model.Agency;
 import org.onebusaway.gtfs.model.AgencyAndId;
 import org.onebusaway.gtfs.model.Route;
 import org.onebusaway.gtfs.model.ServiceCalendar;
@@ -150,5 +151,10 @@ public class GtfsAdvancedDao {
             }
         }
         return null == next ? null : next.getTrip();
+    }
+
+    public TimeZone getTimeZone(final String agencyId) {
+        final Agency agency = gtfs.getAgencyForId(agencyId);
+        return TimeZone.getTimeZone(agency.getTimezone());
     }
 }
