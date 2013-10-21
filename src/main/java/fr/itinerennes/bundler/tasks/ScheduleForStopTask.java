@@ -4,13 +4,13 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Writer;
-import java.util.Date;
+import java.util.Collections;
+import java.util.Comparator;
 
 import org.apache.commons.io.IOUtils;
 import org.onebusaway.gtfs.model.Route;
 import org.onebusaway.gtfs.model.Stop;
 import org.onebusaway.gtfs.model.StopTime;
-import org.onebusaway.gtfs.model.Trip;
 import org.onebusaway.gtfs.model.calendar.ServiceDate;
 import org.onebusaway.gtfs.services.GtfsRelationalDao;
 import org.slf4j.Logger;
@@ -21,12 +21,9 @@ import org.springframework.stereotype.Component;
 
 import com.google.gson.Gson;
 
-import fr.dudie.onebusaway.gson.OneBusAwayGsonFactory;
 import fr.dudie.onebusaway.model.ScheduleStopTime;
 import fr.dudie.onebusaway.model.StopSchedule;
 import fr.dudie.onebusaway.model.Time;
-import fr.dudie.onebusaway.model.TripSchedule;
-import fr.dudie.onebusaway.model.TripStopTime;
 import fr.itinerennes.bundler.gtfs.GtfsAdvancedDao;
 import fr.itinerennes.bundler.tasks.framework.AbstractTask;
 
@@ -35,10 +32,11 @@ public class ScheduleForStopTask extends AbstractTask {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ScheduleForStopTask.class);
 
-    private final Gson gson = OneBusAwayGsonFactory.newInstance();
-
     @Value("${program.args.output}")
     private String output;
+
+    @Autowired
+    private Gson gson;
 
     @Autowired
     private GtfsRelationalDao gtfs;
@@ -54,37 +52,7 @@ public class ScheduleForStopTask extends AbstractTask {
             for (final Stop s : gtfs.getAllStops()) {
                 generateScheduleForStop(scheduleForStopOutput, s, d);
             }
-            final File scheduleForTripOutput = mkdir(d, "schedule-for-trip");
-            for (final Trip t : gtfs.getAllTrips()) {
-                generateScheduleForTrip(scheduleForTripOutput, t, d);
-            }
         }
-    }
-
-    private void generateScheduleForTrip(File output, Trip t, ServiceDate sd) {
-        final TripSchedule sched = new TripSchedule();
-        final Trip prev = xGtfs.getPreviousTrip(t, sd);
-        if (null != prev) {
-            sched.setPreviousTripId(prev.getId().toString());
-        }
-        final Trip next = xGtfs.getNextTrip(t, sd);
-        if (null != next) {
-            sched.setNextTripId(next.getId().toString());
-        }
-        for (final StopTime st : gtfs.getStopTimesForTrip(t)) {
-            sched.getStopTimes().add(toStripStopTime(st));
-        }
-        write(new File(output, t.getId().toString()), sched);
-    }
-
-    private TripStopTime toStripStopTime(StopTime st) {
-        final TripStopTime tst = new TripStopTime();
-        tst.setArrivalTime(new Time(st.getArrivalTime()));
-        tst.setDepartureTime(new Time(st.getDepartureTime()));
-        tst.setDistanceAlongTrip(null);
-        tst.setStop(toStop(st.getStop()));
-        tst.setStopHeadsign(st.getStopHeadsign());
-        return tst;
     }
 
     private File mkdir(final ServiceDate sd, final String entity) {
@@ -108,6 +76,21 @@ public class ScheduleForStopTask extends AbstractTask {
             }
         }
 
+        Collections.sort(sched.getStopTimes(), new Comparator<ScheduleStopTime>() {
+            @Override
+            public int compare(ScheduleStopTime st1, ScheduleStopTime st2) {
+                return st1.getDepartureTime().compareTo(st2.getDepartureTime());
+            }
+        });
+        Collections.sort(sched.getRoutes(), new Comparator<fr.dudie.onebusaway.model.Route>() {
+            @Override
+            public int compare(fr.dudie.onebusaway.model.Route r1, fr.dudie.onebusaway.model.Route r2) {
+                final String id1 = r1.getAgencyId() + r1.getId();
+                final String id2 = r2.getAgencyId() + r2.getId();
+                return id1.compareTo(id2);
+            }
+        });
+
         write(new File(output, String.format("%s.json", s.getId())), sched);
     }
 
@@ -123,14 +106,15 @@ public class ScheduleForStopTask extends AbstractTask {
         }
     }
 
-    private ScheduleStopTime toScheduledStopTime(StopTime gStopTime) {
+    private ScheduleStopTime toScheduledStopTime(final StopTime gStopTime) {
         final ScheduleStopTime sst = new ScheduleStopTime();
-        sst.setArrivalTime(new Date(gStopTime.getArrivalTime()));
-        sst.setDepartureTime(new Date(gStopTime.getDepartureTime()));
+        sst.setArrivalTime(new Time(gStopTime.getArrivalTime() * 1000));
+        sst.setDepartureTime(new Time(gStopTime.getDepartureTime() * 1000));
         sst.setHeadsign(gStopTime.getTrip().getTripHeadsign());
         // routes are set as global entities
         // sst.setRoute(toRoute(gStopTime.getTrip().getRoute()));
         sst.setServiceId(gStopTime.getTrip().getServiceId().toString());
+        sst.setTripId(gStopTime.getTrip().getId().toString());
         return sst;
     }
 
