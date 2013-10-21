@@ -13,7 +13,8 @@ http://www.springframework.org/schema/aop http://www.springframework.org/schema/
     <import resource="classpath:/application-context-cache.xml"/>
 
 	<bean id="gtfsDao" class="fr.itinerennes.bundler.gtfs.GtfsUtils" factory-method="load">
-		<constructor-arg index="0" value="${program.args.gtfsFile}" />
+		<constructor-arg type="java.io.File" value="${program.args.gtfsFile}" />
+        <constructor-arg type="java.util.Map" ref="agencyMapping"/>
 	</bean>
 	
 	<bean id="httpClient" class="org.apache.http.impl.client.DefaultHttpClient">
@@ -24,5 +25,9 @@ http://www.springframework.org/schema/aop http://www.springframework.org/schema/
        <constructor-arg index="0" ref="httpClient" />
        <constructor-arg index="1" value="${keolisApiUrl}"/>
        <constructor-arg index="2" value="${program.args.keolisApiKey}"/>
+    </bean>
+
+    <bean id="gsonSerializer" class="fr.dudie.onebusaway.gson.OneBusAwayGsonFactory" factory-method="newInstance">
+        <constructor-arg value="true"/>
     </bean>
 </beans>

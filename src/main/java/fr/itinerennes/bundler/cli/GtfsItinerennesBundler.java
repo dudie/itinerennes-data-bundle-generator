@@ -52,17 +52,15 @@ public class GtfsItinerennesBundler {
         final GtfsItinerennesBundler main = new GtfsItinerennesBundler();
         main.parseCmdLine(args);
 
-        final GenericApplicationContext bootCtx = new GenericApplicationContext();
-        final BeanDefinition programArgsDef = new GenericBeanDefinition();
-        programArgsDef.setBeanClassName(Properties.class.getName());
-        bootCtx.registerBeanDefinition("programArgs", programArgsDef);
-
+        ClassPathXmlApplicationContext bootCtx = null;
         ClassPathXmlApplicationContext ctx = null;
         try {
             LOGGER.info("Initialization...");
-            bootCtx.refresh();
-            bootCtx.start();
+            // pre-context dynamically initialize some beans depending on program args
+            bootCtx = new ClassPathXmlApplicationContext("classpath:/boot-context.xml");
             main.loadArguments(bootCtx.getBean("programArgs", Properties.class));
+            bootCtx.getBean("agencyMapping", Map.class).putAll(main.agencyMapping);
+
             ctx = new ClassPathXmlApplicationContext(new String[] { "classpath:/application-context.xml" }, bootCtx);
             LOGGER.info("Application context initialization finished");
             final Collection<AbstractTask> tasks = ctx.getBeansOfType(AbstractTask.class).values();
