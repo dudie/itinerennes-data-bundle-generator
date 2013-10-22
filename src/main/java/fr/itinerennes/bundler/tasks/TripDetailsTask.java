@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Writer;
+import java.util.Calendar;
 
 import org.apache.commons.io.IOUtils;
 import org.onebusaway.gtfs.model.Route;
@@ -25,6 +26,7 @@ import com.google.gson.Gson;
 import fr.dudie.onebusaway.model.Time;
 import fr.dudie.onebusaway.model.TripSchedule;
 import fr.dudie.onebusaway.model.TripStopTime;
+import fr.itinerennes.bundler.gtfs.GtfsAdvancedDao;
 import fr.itinerennes.bundler.tasks.framework.AbstractTask;
 
 /**
@@ -43,6 +45,9 @@ public class TripDetailsTask extends AbstractTask {
 
     @Autowired
     private GtfsRelationalDao gtfs;
+
+    @Autowired
+    private GtfsAdvancedDao xGtfs;
 
     @Override
     protected void execute() {
@@ -69,6 +74,11 @@ public class TripDetailsTask extends AbstractTask {
     }
 
     private TripStopTime toTripStopTime(StopTime st) {
+        final Calendar a = Calendar.getInstance(xGtfs.getTimeZone(st.getStop().getId().getAgencyId()));
+        final Calendar d = Calendar.getInstance(xGtfs.getTimeZone(st.getStop().getId().getAgencyId()));
+        a.add(Calendar.SECOND, st.getArrivalTime());
+        d.add(Calendar.SECOND, st.getDepartureTime());
+        
         final TripStopTime tst = new TripStopTime();
         tst.setArrivalTime(new Time(st.getArrivalTime() * 1000));
         tst.setDepartureTime(new Time(st.getDepartureTime() * 1000));

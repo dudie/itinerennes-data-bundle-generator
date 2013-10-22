@@ -4,8 +4,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Writer;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.TimeZone;
 
 import org.apache.commons.io.IOUtils;
 import org.onebusaway.gtfs.model.Route;
@@ -69,7 +71,7 @@ public class ScheduleForStopTask extends AbstractTask {
         sched.setStop(toStop(s));
 
         for (final StopTime st : xGtfs.getStopTimes(s, sd)) {
-            sched.getStopTimes().add(toScheduledStopTime(st));
+            sched.getStopTimes().add(toScheduledStopTime(st, sd));
             final fr.dudie.onebusaway.model.Route route = toRoute(st.getTrip().getRoute());
             if (!sched.getRoutes().contains(route)) {
                 sched.getRoutes().add(route);
@@ -106,10 +108,16 @@ public class ScheduleForStopTask extends AbstractTask {
         }
     }
 
-    private ScheduleStopTime toScheduledStopTime(final StopTime gStopTime) {
+    private ScheduleStopTime toScheduledStopTime(final StopTime gStopTime, final ServiceDate gServiceDate) {
         final ScheduleStopTime sst = new ScheduleStopTime();
-        sst.setArrivalTime(new Time(gStopTime.getArrivalTime() * 1000));
-        sst.setDepartureTime(new Time(gStopTime.getDepartureTime() * 1000));
+        
+        final Calendar a = gServiceDate.getAsCalendar(xGtfs.getTimeZone(gStopTime.getStop().getId().getAgencyId()));
+        final Calendar d = gServiceDate.getAsCalendar(xGtfs.getTimeZone(gStopTime.getStop().getId().getAgencyId()));
+        a.add(Calendar.SECOND, gStopTime.getArrivalTime());
+        d.add(Calendar.SECOND, gStopTime.getDepartureTime());
+        
+        sst.setArrivalTime(new Time(a.getTimeInMillis()));
+        sst.setDepartureTime(new Time(d.getTimeInMillis()));
         sst.setHeadsign(gStopTime.getTrip().getTripHeadsign());
         // routes are set as global entities
         // sst.setRoute(toRoute(gStopTime.getTrip().getRoute()));
