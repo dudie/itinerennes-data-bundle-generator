@@ -6,6 +6,7 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.onebusaway.gtfs.model.FeedInfo;
 import org.onebusaway.gtfs.services.GtfsRelationalDao;
 
 public class GtfsDaoTest {
@@ -34,5 +35,14 @@ public class GtfsDaoTest {
         // wheelchairBoarding=0
         // direction=<null>
         // ]
+    }
+
+    @Test
+    public void sampleFeedInfoOutput() {
+
+        System.out.println("==== FEED_INFO ====");
+        for (final FeedInfo fi : gtfsDao.getAllFeedInfos()) {
+            System.out.println(ToStringBuilder.reflectionToString(fi, ToStringStyle.MULTI_LINE_STYLE));
+        }
     }
 }

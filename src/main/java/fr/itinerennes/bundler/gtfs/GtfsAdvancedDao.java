@@ -112,6 +112,7 @@ public class GtfsAdvancedDao {
                 }
 
                 if (start.compareTo(date) <= 0 && end.compareTo(date) >= 0 && (!removals.contains(date) || additions.contains(date))) {
+                    // TODO check the day of week is active for the calendar
                     return true;
                 } else {
                     return false;
