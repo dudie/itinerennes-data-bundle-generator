@@ -1,6 +1,7 @@
 package fr.itinerennes.bundler.gtfs;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -112,8 +113,9 @@ public class GtfsAdvancedDao {
                 }
 
                 if (start.compareTo(date) <= 0 && end.compareTo(date) >= 0 && (!removals.contains(date) || additions.contains(date))) {
-                    // TODO check the day of week is active for the calendar
-                    return true;
+                    final String agencyId = stop.getId().getAgencyId() ;
+                    final TimeZone tz =  GtfsAdvancedDao.this.getTimeZone(agencyId);
+                    return DayOfWeek.isSameDay(date.getAsCalendar(tz), sc);
                 } else {
                     return false;
                 }
