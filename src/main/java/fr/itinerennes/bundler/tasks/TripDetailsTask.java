@@ -66,6 +66,7 @@ public class TripDetailsTask extends AbstractTask {
 
     private void generateScheduleForTrip(File output, Trip t) {
         final TripSchedule sched = new TripSchedule();
+        sched.setHeadsign(t.getTripHeadsign());
         sched.setRoute(toRoute(t.getRoute()));
         for (final StopTime st : gtfs.getStopTimesForTrip(t)) {
             sched.getStopTimes().add(toTripStopTime(st));
