@@ -4,10 +4,13 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Writer;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.onebusaway.gtfs.model.Stop;
 import org.onebusaway.gtfs.model.Trip;
@@ -15,8 +18,8 @@ import org.onebusaway.gtfs.services.GtfsDao;
 
 import com.google.gson.Gson;
 
-import fr.dudie.onebusaway.client.IOneBusAwayClient;
 import fr.dudie.onebusaway.client.JsonOneBusAwayClient;
+import fr.dudie.onebusaway.client.JsonOneBusAwayClient.ClientListener;
 import fr.dudie.onebusaway.gson.OneBusAwayGsonFactory;
 import fr.dudie.onebusaway.model.StopSchedule;
 import fr.dudie.onebusaway.model.TripSchedule;
@@ -25,7 +28,7 @@ import fr.itinerennes.bundler.gtfs.GtfsUtils;
 
 public class GenerateStaticObaApiResults {
 
-    private static IOneBusAwayClient oba;
+    private static JsonOneBusAwayClient oba;
 
     private static Gson gson;
 
@@ -39,17 +42,20 @@ public class GenerateStaticObaApiResults {
         agencyMapping.put("1", "2");
         final GtfsDao gtfs = GtfsUtils.load(new File(gtfsFile), agencyMapping);
 
+        final CloneClientListener listener = new CloneClientListener();
         oba = new JsonOneBusAwayClient(new DefaultHttpClient(), url, key);
+        oba.addListener(listener);
         gson = OneBusAwayGsonFactory.newInstance(true);
 
-        final Calendar current = Calendar.getInstance();
-        current.set(2013, 8, 2, 0, 0);
         final Calendar end = Calendar.getInstance();
-        end.set(2013, 9, 20, 0, 0);
-        
+        end.set(2013, 11, 22, 0, 0);
+
         final Calendar start = Calendar.getInstance();
-        start.set(2013, 9, 18, 0, 0);
-        
+        start.set(2013, 10, 4, 0, 0);
+
+        final Calendar current = Calendar.getInstance();
+        current.setTime(start.getTime());
+
         while (current.before(end) || current.equals(end)) {
             System.out.println(current.getTime());
             for (final Stop stop : gtfs.getAllStops()) {
@@ -61,6 +67,8 @@ public class GenerateStaticObaApiResults {
                 final File outDir = new File(String.format("%s/%s", methodDir, dateDir));
                 outDir.mkdirs();
                 final File f = new File(outDir, String.format("%s.json", stopId));
+
+                listener.setOutput(new File(String.format("%s/schedule-for-stop.original/%s/%s.json", out, dateDir, stopId)));
 
                 final StopSchedule ss = oba.getScheduleForStop(stopId, current.getTime());
                 final String json = gson.toJson(ss);
@@ -78,12 +86,34 @@ public class GenerateStaticObaApiResults {
             final String tripId = trip.getId().toString();
             final File f = new File(outDir, String.format("%s.json", tripId));
 
+            listener.setOutput(new File(String.format("%s/trip-details.original/%s.json", out, tripId)));
+
             final TripSchedule ts = oba.getTripDetails(tripId);
             final String json = gson.toJson(ts);
 
             final Writer w = new PrintWriter(f);
             w.write(json);
             w.close();
+        }
+    }
+
+    private static class CloneClientListener implements ClientListener {
+
+        private File output;
+
+        public void setOutput(File output) {
+            this.output = output;
+        }
+
+        @Override
+        public void onRequest(final String url) {
+            try {
+                FileUtils.copyURLToFile(new URL(url), output);
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 }
