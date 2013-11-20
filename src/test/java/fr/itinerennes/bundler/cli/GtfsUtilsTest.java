@@ -1,11 +1,15 @@
 package fr.itinerennes.bundler.cli;
-
+import static org.fest.assertions.Assertions.*;
 import static org.junit.Assert.*;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.AfterClass;
@@ -13,6 +17,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.MockitoAnnotations;
+import org.onebusaway.gtfs.model.Agency;
 import org.onebusaway.gtfs.services.GtfsRelationalDao;
 
 import fr.itinerennes.bundler.gtfs.GtfsException;
@@ -87,5 +92,19 @@ public final class GtfsUtilsTest {
         assertEquals(0, gtfsDao.getAllTransfers().size());
         assertEquals(6809, gtfsDao.getAllTrips().size());
 
+    }
+
+    @Test
+    public void testGtfsFileWithAgencyMapping() throws GtfsException {
+
+        final Map<String, String> am = new HashMap<String, String>();
+        am.put("1", "2");
+        final GtfsRelationalDao gtfsDao = GtfsUtils.load(gtfsFile, am);
+
+        assertThat(gtfsDao.getAgencyForId("1")).isNull();
+
+        final Agency a2 = gtfsDao.getAgencyForId("2");
+        assertThat(a2).isNotNull();
+        assertThat(a2.getName()).isEqualTo("STAR");
     }
 }
