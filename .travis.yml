@@ -9,9 +9,17 @@ env:
   - secure: "K1W2JHG2uIhRGc9Kr5OjfCyA6DFflrZkj45yMoc8NuFoMMNyS8Z9or69Zi6J6z+q8QYmZzcq3c6mSNaiK/BHMulqIWfRoOAbKSg/S/3ZhaDMSwKbHDWjvAumw62vtdj9PK7woBtaaX+Y63Bwd70i1tmAp1V6gvkt2Oq7TGfWPxk="
 
 before_script:
+# setup git
+- git config --global user.email "jeremie+travis+itinerennes+data+bundle+generator@dudie.fr"
+- git config --global user.name "Travis CI"
+
 # install Travis tools
 - git clone https://gist.github.com/7630453.git travis-tools
-- ./travis-tools/setup.sh
+
+# register Github identity
+- curl "https://raw.github.com/dudie/maven-repository/master/github_key.pub" >> ~/.ssh/known_hosts
+#- cat travis-tools/id_github.pub > ~/.ssh/known_hosts
+- cat ~/.ssh/known_hosts
 
 # setup private key for deployment
 - cat id_itinerennes-data-bundle-generator.enc | ./travis-tools/decrypt.sh $KEY > id_itinerennes-data-bundle-generator
@@ -30,7 +38,7 @@ before_script:
 - tar jxf itinerennes-data-bundle-generator.tar.bz2
 
 # clone itinerennes-api repository
-- git clone git@github.com:dudie/itinerennes-api
+- git clone git@github.com:dudie/itinerennes-api.git
 - cd itinerennes-api
 - git checkout data
 - cd -
@@ -38,5 +46,7 @@ before_script:
 script:
 - ./itinerennes-data-bundle-generator/bundler.sh GTFS.zip -am 1=2 -k $KEOLIS_API_KEY -o itinerennes-api
 - cd itinerennes-api
-- git status
+- git add .
+- git commit -m "Add data from $GTFS_ID" | grep -v "^ create mode"
+- git push origin data
 
