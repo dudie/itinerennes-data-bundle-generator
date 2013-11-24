@@ -69,6 +69,17 @@
 
     <repositories>
         <repository>
+            <id>dudie-github-releases</id>
+            <name>Dudie releases hosted on Github</name>
+            <url>https://raw.github.com/dudie/maven-repository/releases</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <repository>
             <id>dudie-snapshots</id>
             <name>Dudie snapshots by Cloudbees</name>
             <url>https://repository-dudie.forge.cloudbees.com/private/snapshots</url>
