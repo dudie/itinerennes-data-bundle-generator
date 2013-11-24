@@ -1,20 +1,13 @@
 package fr.itinerennes.bundler.tasks;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.nio.charset.Charset;
 import java.util.Locale;
 import java.util.TimeZone;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.onebusaway.gtfs.model.Agency;
 import org.onebusaway.gtfs.model.FeedInfo;
-import org.onebusaway.gtfs.services.GtfsDao;
 import org.onebusaway.gtfs.services.GtfsRelationalDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -65,7 +58,7 @@ public class FeedInfoTask extends AbstractTask {
 
         final TimeZone tz = xGtfs.getTimeZone(gAgency.getId());
 
-        final fr.dudie.onebusaway.model.FeedInfo infos = new fr.dudie.onebusaway.model.FeedInfo();
+        final fr.itinerennes.api.client.model.FeedInfo infos = new fr.itinerennes.api.client.model.FeedInfo();
         infos.setPublisherName(gFeedInfo.getPublisherName());
         infos.setPublisherUrl(gFeedInfo.getPublisherUrl());
         infos.setLang(new Locale(gFeedInfo.getLang()));
@@ -73,7 +66,7 @@ public class FeedInfoTask extends AbstractTask {
         infos.setEnd(gFeedInfo.getEndDate().getAsCalendar(tz).getTime());
         infos.setVersion(gFeedInfo.getVersion());
 
-        final fr.dudie.onebusaway.model.Agency agency = new fr.dudie.onebusaway.model.Agency();
+        final fr.itinerennes.api.client.model.Agency agency = new fr.itinerennes.api.client.model.Agency();
         agency.setId(gAgency.getId());
         agency.setLang(new Locale(gAgency.getLang()));
         agency.setName(gAgency.getName());

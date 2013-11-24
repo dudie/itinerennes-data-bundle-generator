@@ -23,9 +23,9 @@ import org.springframework.stereotype.Component;
 
 import com.google.gson.Gson;
 
-import fr.dudie.onebusaway.model.Time;
-import fr.dudie.onebusaway.model.TripSchedule;
-import fr.dudie.onebusaway.model.TripStopTime;
+import fr.itinerennes.api.client.model.Time;
+import fr.itinerennes.api.client.model.TripSchedule;
+import fr.itinerennes.api.client.model.TripStopTime;
 import fr.itinerennes.bundler.gtfs.GtfsAdvancedDao;
 import fr.itinerennes.bundler.tasks.framework.AbstractTask;
 
@@ -100,8 +100,8 @@ public class TripDetailsTask extends AbstractTask {
         }
     }
 
-    private fr.dudie.onebusaway.model.Route toRoute(final Route gRoute) {
-        final fr.dudie.onebusaway.model.Route route = new fr.dudie.onebusaway.model.Route();
+    private fr.itinerennes.api.client.model.Route toRoute(final Route gRoute) {
+        final fr.itinerennes.api.client.model.Route route = new fr.itinerennes.api.client.model.Route();
         route.setAgencyId(gRoute.getAgency().getId());
         route.setId(String.valueOf(gRoute.getId()));
         route.setShortName(gRoute.getShortName());
@@ -113,8 +113,8 @@ public class TripDetailsTask extends AbstractTask {
         return route;
     }
 
-    private fr.dudie.onebusaway.model.Stop toStop(final Stop gStop) {
-        final fr.dudie.onebusaway.model.Stop stop = new fr.dudie.onebusaway.model.Stop();
+    private fr.itinerennes.api.client.model.Stop toStop(final Stop gStop) {
+        final fr.itinerennes.api.client.model.Stop stop = new fr.itinerennes.api.client.model.Stop();
         stop.setCode(Integer.valueOf(gStop.getCode()));
         stop.setDirection(gStop.getDirection());
         stop.setId(gStop.getId().toString());

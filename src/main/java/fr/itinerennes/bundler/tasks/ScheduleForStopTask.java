@@ -7,7 +7,6 @@ import java.io.Writer;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.TimeZone;
 
 import org.apache.commons.io.IOUtils;
 import org.onebusaway.gtfs.model.Route;
@@ -23,9 +22,9 @@ import org.springframework.stereotype.Component;
 
 import com.google.gson.Gson;
 
-import fr.dudie.onebusaway.model.ScheduleStopTime;
-import fr.dudie.onebusaway.model.StopSchedule;
-import fr.dudie.onebusaway.model.Time;
+import fr.itinerennes.api.client.model.ScheduleStopTime;
+import fr.itinerennes.api.client.model.StopSchedule;
+import fr.itinerennes.api.client.model.Time;
 import fr.itinerennes.bundler.gtfs.GtfsAdvancedDao;
 import fr.itinerennes.bundler.tasks.framework.AbstractTask;
 
@@ -72,7 +71,7 @@ public class ScheduleForStopTask extends AbstractTask {
 
         for (final StopTime st : xGtfs.getStopTimes(s, sd)) {
             sched.getStopTimes().add(toScheduledStopTime(st, sd));
-            final fr.dudie.onebusaway.model.Route route = toRoute(st.getTrip().getRoute());
+            final fr.itinerennes.api.client.model.Route route = toRoute(st.getTrip().getRoute());
             if (!sched.getRoutes().contains(route)) {
                 sched.getRoutes().add(route);
             }
@@ -84,9 +83,9 @@ public class ScheduleForStopTask extends AbstractTask {
                 return st1.getDepartureTime().compareTo(st2.getDepartureTime());
             }
         });
-        Collections.sort(sched.getRoutes(), new Comparator<fr.dudie.onebusaway.model.Route>() {
+        Collections.sort(sched.getRoutes(), new Comparator<fr.itinerennes.api.client.model.Route>() {
             @Override
-            public int compare(fr.dudie.onebusaway.model.Route r1, fr.dudie.onebusaway.model.Route r2) {
+            public int compare(fr.itinerennes.api.client.model.Route r1, fr.itinerennes.api.client.model.Route r2) {
                 final String id1 = r1.getAgencyId() + r1.getId();
                 final String id2 = r2.getAgencyId() + r2.getId();
                 return id1.compareTo(id2);
@@ -119,15 +118,14 @@ public class ScheduleForStopTask extends AbstractTask {
         sst.setArrivalTime(new Time(a.getTimeInMillis()));
         sst.setDepartureTime(new Time(d.getTimeInMillis()));
         sst.setHeadsign(gStopTime.getTrip().getTripHeadsign());
-        // routes are set as global entities
-        // sst.setRoute(toRoute(gStopTime.getTrip().getRoute()));
+        sst.setRoute(toRoute(gStopTime.getTrip().getRoute()));
         sst.setServiceId(gStopTime.getTrip().getServiceId().toString());
         sst.setTripId(gStopTime.getTrip().getId().toString());
         return sst;
     }
 
-    private fr.dudie.onebusaway.model.Route toRoute(final Route gRoute) {
-        final fr.dudie.onebusaway.model.Route route = new fr.dudie.onebusaway.model.Route();
+    private fr.itinerennes.api.client.model.Route toRoute(final Route gRoute) {
+        final fr.itinerennes.api.client.model.Route route = new fr.itinerennes.api.client.model.Route();
         route.setAgencyId(gRoute.getAgency().getId());
         route.setId(String.valueOf(gRoute.getId()));
         route.setShortName(gRoute.getShortName());
@@ -139,8 +137,8 @@ public class ScheduleForStopTask extends AbstractTask {
         return route;
     }
 
-    private fr.dudie.onebusaway.model.Stop toStop(final Stop gStop) {
-        final fr.dudie.onebusaway.model.Stop stop = new fr.dudie.onebusaway.model.Stop();
+    private fr.itinerennes.api.client.model.Stop toStop(final Stop gStop) {
+        final fr.itinerennes.api.client.model.Stop stop = new fr.itinerennes.api.client.model.Stop();
         stop.setCode(Integer.valueOf(gStop.getCode()));
         stop.setDirection(gStop.getDirection());
         stop.setId(gStop.getId().toString());
