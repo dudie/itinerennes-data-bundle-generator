@@ -4,7 +4,7 @@ branches:
   only: command
 env:
   global:
-  - export GTFS_URL=http://data.keolis-rennes.com/fileadmin/OpenDataFiles/GTFS/GTFS-20131031.zip
+  - GTFS_URL=http://data.keolis-rennes.com/fileadmin/OpenDataFiles/GTFS/GTFS-20131031.zip
   - secure: "B+46iFiWaZAw92r5sN4fyRVPNeJhtiPjEUTbMmFKf/eMUIELXCnZfnezZzeZq4XtmroUbuCMh0kM42G101X3HLzcTCzQ2q0FiDIX5h6zFWPidHRlB24dEd1HC9qPWC9eCUGY/s1cXgd1v7GR1zFOulxo7/UX41Jen0t36fTmVR0="
   - secure: "K1W2JHG2uIhRGc9Kr5OjfCyA6DFflrZkj45yMoc8NuFoMMNyS8Z9or69Zi6J6z+q8QYmZzcq3c6mSNaiK/BHMulqIWfRoOAbKSg/S/3ZhaDMSwKbHDWjvAumw62vtdj9PK7woBtaaX+Y63Bwd70i1tmAp1V6gvkt2Oq7TGfWPxk="
 
