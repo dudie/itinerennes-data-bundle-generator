@@ -12,7 +12,11 @@ before_script:
 # install Travis tools
 - git clone https://gist.github.com/7630453.git travis-tools
 - ./travis-tools/setup.sh
+
+# setup private key for deployment
 - cat id_itinerennes-data-bundle-generator.enc | ./travis-tools/decrypt.sh $KEY > id_itinerennes-data-bundle-generator
+- chmod 400 id_itinerennes-data-bundle-generator
+- eval $(ssh-agent)
 - ssh-add id_itinerennes-data-bundle-generator
 
 # export GTFS file identifier
