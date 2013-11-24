@@ -27,7 +27,7 @@ http://www.springframework.org/schema/aop http://www.springframework.org/schema/
        <constructor-arg index="2" value="${program.args.keolisApiKey}"/>
     </bean>
 
-    <bean id="gsonSerializer" class="fr.dudie.onebusaway.gson.OneBusAwayGsonFactory" factory-method="newInstance">
+    <bean id="gsonSerializer" class="fr.itinerennes.api.client.gson.ItineRennesApiGsonFactory" factory-method="newInstance">
         <constructor-arg value="true"/>
     </bean>
 </beans>
