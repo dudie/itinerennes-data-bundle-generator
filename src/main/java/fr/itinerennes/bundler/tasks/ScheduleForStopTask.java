@@ -119,6 +119,7 @@ public class ScheduleForStopTask extends AbstractTask {
         sst.setDepartureTime(new Time(d.getTimeInMillis()));
         sst.setHeadsign(gStopTime.getTrip().getTripHeadsign());
         sst.setRoute(toRoute(gStopTime.getTrip().getRoute()));
+        sst.setRouteId(sst.getRoute().getId());
         sst.setServiceId(gStopTime.getTrip().getServiceId().toString());
         sst.setTripId(gStopTime.getTrip().getId().toString());
         return sst;
