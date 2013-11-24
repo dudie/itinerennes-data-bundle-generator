@@ -1,0 +1,31 @@
+language: java
+jdk: openjdk6
+branches:
+  only: command
+env:
+  global:
+  - export GTFS_URL=http://data.keolis-rennes.com/fileadmin/OpenDataFiles/GTFS/GTFS-20131031.zip
+  - secure: "K1W2JHG2uIhRGc9Kr5OjfCyA6DFflrZkj45yMoc8NuFoMMNyS8Z9or69Zi6J6z+q8QYmZzcq3c6mSNaiK/BHMulqIWfRoOAbKSg/S/3ZhaDMSwKbHDWjvAumw62vtdj9PK7woBtaaX+Y63Bwd70i1tmAp1V6gvkt2Oq7TGfWPxk="
+
+before_script:
+# export GTFS file identifier
+- export GTFS_ID=$(basename $GTFS_URL)
+
+# download GTFS data bundle
+- wget $GTFS_URL -O GTFS.zip
+
+# download itinerennes data bundle generator
+- wget https://raw.github.com/dudie/maven-repository/snapshots/fr/itinerennes/itinerennes-data-bundle-generator/1.0-SNAPSHOT/itinerennes-data-bundle-generator-1.0-20131124.171603-1-dist-pkg.tar.bz2 -O itinerennes-data-bundle-generator.tar.bz2
+- tar jxf itinerennes-data-bundle-generator.tar.bz2
+
+# clone itinerennes-api repository
+- git clone git@github.com:dudie/itinerennes-api
+- cd itinerennes-api
+- git checkout data
+- cd -
+
+script:
+- ./itinerennes-data-bundle-generator/bundler.sh GTFS.zip -am 1=2 -k $KEOLIS_API_KEY -o itinerennes-api
+- cd itinerennes-api
+- git status
+
