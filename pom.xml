@@ -79,17 +79,6 @@
                 <enabled>false</enabled>
             </snapshots>
         </repository>
-        <repository>
-            <id>dudie-snapshots</id>
-            <name>Dudie snapshots by Cloudbees</name>
-            <url>https://repository-dudie.forge.cloudbees.com/private/snapshots</url>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-            <releases>
-                <enabled>false</enabled>
-            </releases>
-        </repository>
     </repositories>
 
     <dependencies>
@@ -132,7 +121,7 @@
         <dependency>
             <groupId>fr.itinerennes</groupId>
             <artifactId>itinerennes-commons</artifactId>
-            <version>0.6-SNAPSHOT</version>
+            <version>0.7-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>fr.dudie</groupId>
