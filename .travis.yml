@@ -13,5 +13,6 @@ script:
 - wget https://downloads.sourceforge.net/project/dudie/itinerennes-data-bundle-generator/integration-test-data.tar.bz2?r=&ts=1385413914&use_mirror=freefr -O integration-test-data.tar.bz2
 - tar jxf integration-test-data.tar.bz2
 - $BUNDLER GTFS-20131031.zip -am 1=2 -k $KEOLIS_API_KEY -o integration-test-data/result
+# compare expected output with effective output
 - diff integration-test-data/expected-output/schedule-for-stop integration-test-data/result/schedule-for-stop
 - diff integration-test-data/expected-output/trip-details integration-test-data/result/stip-details
