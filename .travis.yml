@@ -1,18 +1,20 @@
 language: java
 jdk:
-  - oraclejdk7
   - openjdk7
-  - openjdk6
+env:
+  global:
+  - secure: "g1fPq8woPNWaRhNMAet/AkyY8ZW8xL+AFHuO3W7+LNvct9FefbK2k/E9VCAxFiSezwARfI1LWWE7KTX97qbgy+j6rMvip5n8otjJHaIONA9YBb3nZ+rTLsFSqZl3nU49llC1YWtiHb4mD0KvJXCfhOnFgz8Mo8MlsO6bETfOuJE="
 
 script:
 # build
 - mvn clean install
 
 # integration test
-- BUNDLER=find target -name 'bundler.sh'
-- wget https://downloads.sourceforge.net/project/dudie/itinerennes-data-bundle-generator/integration-test-data.tar.bz2?r=&ts=1385413914&use_mirror=freefr -O integration-test-data.tar.bz2
+- BUNDLER=$(find target -name 'bundler.sh')
+- wget "https://downloads.sourceforge.net/project/dudie/itinerennes-data-bundle-generator/integration-test-data.tar.bz2?r=&ts=1385413914&use_mirror=freefr" -O integration-test-data.tar.bz2
 - tar jxf integration-test-data.tar.bz2
-- $BUNDLER GTFS-20131031.zip -am 1=2 -k $KEOLIS_API_KEY -o integration-test-data/result
+- $BUNDLER integration-test-data/GTFS-20131031.zip -am 1=2 -k $KEOLIS_API_KEY -o integration-test-data/result
 # compare expected output with effective output
-- diff integration-test-data/expected-output/schedule-for-stop integration-test-data/result/schedule-for-stop
-- diff integration-test-data/expected-output/trip-details integration-test-data/result/stip-details
+- diff -r integration-test-data/expected-output/schedule-for-stop integration-test-data/result/schedule-for-stop > integration-test-data/schedule-for-stop.diff
+- diff -r  integration-test-data/expected-output/trip-details integration-test-data/result/trip-details > integration-test-data/trip-details.diff
+- head -50 integration-test-data/schedule-for-stop.diff integration-test-data/trip-details.diff
