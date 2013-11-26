@@ -66,7 +66,7 @@ public class ScheduleForStopTask extends AbstractTask {
     private void generateScheduleForStop(File output, Stop s, ServiceDate sd) {
 
         final StopSchedule sched = new StopSchedule();
-        sched.setDate(sd.getAsDate());
+        sched.setDate(sd.getAsDate(xGtfs.getTimeZone(s.getId().getAgencyId())));
         sched.setStop(toStop(s));
 
         for (final StopTime st : xGtfs.getStopTimes(s, sd)) {
