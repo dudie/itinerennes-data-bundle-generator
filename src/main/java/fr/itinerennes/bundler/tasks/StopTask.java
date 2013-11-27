@@ -67,14 +67,16 @@ public class StopTask extends AbstractTask {
         stop.setName(gStop.getName());
         stop.setRoutes(new ArrayList<fr.itinerennes.api.client.model.Route>());
 
-        final Set<AgencyAndId> added = new HashSet<AgencyAndId>();
+        final Set<AgencyAndId> routeIds = new HashSet<AgencyAndId>();
         for (final StopTime gStopTime : gtfs.getAllStopTimes()) {
-            // if the stop time serves the stop
-            final AgencyAndId stopId = gStopTime.getStop().getId();
-            if (stopId.equals(gStop.getId()) && !added.contains(stopId)) {
-                stop.getRoutes().add(toRoute(gStopTime.getTrip().getRoute()));
+            // if the stop time serves the stop and the route isn't already added
+            final AgencyAndId routeId = gStopTime.getTrip().getRoute().getId();
+            if (gStop.getId().equals(gStopTime.getStop().getId()) && !routeIds.contains(routeId)) {
+                routeIds.add(routeId);
+                stop.getRoutes().add(toRoute(gtfs.getRouteForId(routeId)));
             }
         }
+
         write(new File(output, String.format("%s.json", stop.getId().toString())), stop);
     }
 
