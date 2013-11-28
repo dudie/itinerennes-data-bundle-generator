@@ -1,7 +1,6 @@
 package fr.itinerennes.bundler.gtfs;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -11,7 +10,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.Predicate;
 import org.onebusaway.gtfs.model.Agency;
 import org.onebusaway.gtfs.model.AgencyAndId;
-import org.onebusaway.gtfs.model.Route;
 import org.onebusaway.gtfs.model.ServiceCalendar;
 import org.onebusaway.gtfs.model.ServiceCalendarDate;
 import org.onebusaway.gtfs.model.Stop;
@@ -113,8 +111,8 @@ public class GtfsAdvancedDao {
                 }
 
                 if (start.compareTo(date) <= 0 && end.compareTo(date) >= 0 && (!removals.contains(date) || additions.contains(date))) {
-                    final String agencyId = stop.getId().getAgencyId() ;
-                    final TimeZone tz =  GtfsAdvancedDao.this.getTimeZone(agencyId);
+                    final String agencyId = stop.getId().getAgencyId();
+                    final TimeZone tz = GtfsAdvancedDao.this.getTimeZone(agencyId);
                     return DayOfWeek.isSameDay(date.getAsCalendar(tz), sc);
                 } else {
                     return false;

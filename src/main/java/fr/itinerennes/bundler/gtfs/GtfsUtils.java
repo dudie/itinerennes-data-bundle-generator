@@ -2,6 +2,8 @@ package fr.itinerennes.bundler.gtfs;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.zip.ZipException;
@@ -9,10 +11,14 @@ import java.util.zip.ZipFile;
 
 import org.onebusaway.csv_entities.ZipFileCsvInputSource;
 import org.onebusaway.gtfs.impl.GtfsRelationalDaoImpl;
+import org.onebusaway.gtfs.model.Route;
 import org.onebusaway.gtfs.serialization.GtfsReader;
 import org.onebusaway.gtfs.services.GtfsRelationalDao;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import fr.itinerennes.bundler.gtfs.keolis.KeolisExtensionsReader;
+import fr.itinerennes.bundler.gtfs.keolis.KeolisGtfsDaoImpl;
 
 /**
  * @author Jérémie Huchet
@@ -38,7 +44,7 @@ public final class GtfsUtils {
      * @throws GtfsException
      *             unable to load the GTFS data
      */
-    public static GtfsRelationalDao load(final File gtfsFile) throws GtfsException {
+    public static KeolisGtfsDaoImpl load(final File gtfsFile) throws GtfsException {
 
         return load(gtfsFile, null);
     }
@@ -54,18 +60,16 @@ public final class GtfsUtils {
      * @throws GtfsException
      *             unable to load the GTFS data
      */
-    public static GtfsRelationalDao load(final File gtfsFile,
-            final Map<String, String> agencyMappings) throws GtfsException {
+    public static KeolisGtfsDaoImpl load(final File gtfsFile, final Map<String, String> agencyMappings) throws GtfsException {
 
         try {
             final ZipFile file = new ZipFile(gtfsFile);
             final ZipFileCsvInputSource source = new ZipFileCsvInputSource(file);
 
-            final GtfsRelationalDaoImpl gtfsDao = new GtfsRelationalDaoImpl();
+            final KeolisGtfsDaoImpl gtfsDao = new KeolisGtfsDaoImpl();
 
-            final GtfsReader reader = new GtfsReader();
+            final KeolisExtensionsReader reader = new KeolisExtensionsReader(gtfsDao);
             reader.setInputSource(source);
-            reader.setEntityStore(gtfsDao);
 
             if (null != agencyMappings) {
                 for (final Entry<String, String> mapping : agencyMappings.entrySet()) {

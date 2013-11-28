@@ -22,6 +22,7 @@ import org.onebusaway.gtfs.services.GtfsRelationalDao;
 
 import fr.itinerennes.bundler.gtfs.GtfsException;
 import fr.itinerennes.bundler.gtfs.GtfsUtils;
+import fr.itinerennes.bundler.gtfs.keolis.KeolisGtfsDaoImpl;
 
 public final class GtfsUtilsTest {
 
@@ -74,7 +75,7 @@ public final class GtfsUtilsTest {
     @Test
     public void testGtfsFile() throws GtfsException {
 
-        final GtfsRelationalDao gtfsDao = GtfsUtils.load(gtfsFile);
+        final KeolisGtfsDaoImpl gtfsDao = GtfsUtils.load(gtfsFile);
 
         assertEquals(1, gtfsDao.getAllAgencies().size());
         assertEquals(14, gtfsDao.getAllCalendarDates().size());
@@ -91,6 +92,7 @@ public final class GtfsUtilsTest {
         assertEquals(182666, gtfsDao.getAllStopTimes().size());
         assertEquals(0, gtfsDao.getAllTransfers().size());
         assertEquals(6809, gtfsDao.getAllTrips().size());
+        assertEquals(23, gtfsDao.getAllAccessibleRoutes().size());
 
     }
 
