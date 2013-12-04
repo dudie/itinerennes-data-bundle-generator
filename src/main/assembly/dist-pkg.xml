@@ -14,13 +14,19 @@
       <lineEnding>keep</lineEnding>
       <filtered>false</filtered>
     </file>
-    <file>
-      <source>src/main/script/bundler.sh</source>
+  </files>
+  <fileSets>
+    <fileSet>
+      <directory>src/main/script</directory>
+      <includes>
+        <include>*.sh</include>
+      </includes>
+      <outputDirectory>/</outputDirectory>
       <fileMode>0755</fileMode>
       <lineEnding>unix</lineEnding>
       <filtered>true</filtered>
-    </file>
-  </files>
+    </fileSet>
+  </fileSets>
   <dependencySets>
     <dependencySet>
       <outputDirectory>lib</outputDirectory>
