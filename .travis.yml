@@ -4,9 +4,15 @@ branches:
   only: command
 env:
   global:
+  - IMAGES_URL="http://data.keolis-rennes.com/fileadmin/documents/Picto_lignes/Pictogrammes_100x100/Pictogrammes_100x100.zip"
   - GTFS_URL="http://data.keolis-rennes.com/fileadmin/OpenDataFiles/GTFS/GTFS-20131031.zip"
+  # $KEY
   - secure: "B+46iFiWaZAw92r5sN4fyRVPNeJhtiPjEUTbMmFKf/eMUIELXCnZfnezZzeZq4XtmroUbuCMh0kM42G101X3HLzcTCzQ2q0FiDIX5h6zFWPidHRlB24dEd1HC9qPWC9eCUGY/s1cXgd1v7GR1zFOulxo7/UX41Jen0t36fTmVR0="
+  # $KEOLIS_API_KEY
   - secure: "K1W2JHG2uIhRGc9Kr5OjfCyA6DFflrZkj45yMoc8NuFoMMNyS8Z9or69Zi6J6z+q8QYmZzcq3c6mSNaiK/BHMulqIWfRoOAbKSg/S/3ZhaDMSwKbHDWjvAumw62vtdj9PK7woBtaaX+Y63Bwd70i1tmAp1V6gvkt2Oq7TGfWPxk="
+
+before_install:
+- sudo apt-get install imagemagick inkscape -qq
 
 before_script:
 # setup git
@@ -33,8 +39,14 @@ before_script:
 # download GTFS data bundle
 - wget $GTFS_URL -O GTFS.zip
 
+# download keois Keolis icons
+- wget $IMAGES_URL -O keolis-icons.zip
+- mkdir -p keolis-icons/original keolis-icons/resized
+- unzip keolis-icons.zip -d keolis-icons/original
+
 # download itinerennes data bundle generator
-- wget "https://raw.github.com/dudie/maven-repository/snapshots/fr/itinerennes/itinerennes-data-bundle-generator/1.0-SNAPSHOT/itinerennes-data-bundle-generator-1.0-20131126.232344-2-dist-pkg.tar.bz2" -O itinerennes-data-bundle-generator.tar.bz2
+- mvn dependency:get -Dartifact=fr.itinerennes:itinerennes-data-bundle-generator:1.0-SNAPSHOT:tar.bz2:dist-pkg -DremoteRepositories=https://raw.github.com/dudie/maven-repository/snapshots
+- mvn dependency:copy -Dartifact=fr.itinerennes:itinerennes-data-bundle-generator:1.0-SNAPSHOT:tar.bz2:dist-pkg -D outputDirectory=. -Dmdep.stripClassifier -Dmdep.stripVersion
 - tar jxf itinerennes-data-bundle-generator.tar.bz2
 
 # clone itinerennes-api repository
@@ -49,4 +61,6 @@ script:
 - git add .
 - git commit -m "Add data from $GTFS_ID" | grep -v "^ create mode"
 - git push origin data
+- cd -
+- ./itinerennes-data-bundle-generator/gen-keolis-icons.sh keolis-icons/original keolis-icons/resized
 
