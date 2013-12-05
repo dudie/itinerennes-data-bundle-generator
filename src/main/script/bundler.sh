@@ -6,8 +6,9 @@ fail() {
 }
 
 echo "Using JAVA_HOME=$JAVA_HOME"
+echo "Using JAVA_OPTS=$JAVA_OPTS"
 
 JAVA=$JAVA_HOME/bin/java
 test -f $JAVA || fail 1 "java not found, check JAVA_HOME"
 
-$JAVA -jar $(dirname $0)/${project.artifactId}-${project.version}.jar $*
+$JAVA $JAVA_OPTS -jar $(dirname $0)/${project.artifactId}-${project.version}.jar $*
