@@ -2,18 +2,26 @@ language: java
 jdk:
   - openjdk7
 env:
+  matrix:
+  - TZ="Europe/Paris"
+  - TZ="GMT"
   global:
   - secure: "g1fPq8woPNWaRhNMAet/AkyY8ZW8xL+AFHuO3W7+LNvct9FefbK2k/E9VCAxFiSezwARfI1LWWE7KTX97qbgy+j6rMvip5n8otjJHaIONA9YBb3nZ+rTLsFSqZl3nU49llC1YWtiHb4mD0KvJXCfhOnFgz8Mo8MlsO6bETfOuJE="
 
-script:
-# build
-- mvn clean install
-
-# integration test
-- BUNDLER=$(find target -path 'itinerennes-data-bundle-generator-*-dist-pkg/itinerennes-data-bundle-generator/bundler.sh')
+before_script:
+# download integration test data
 - wget "https://downloads.sourceforge.net/project/dudie/itinerennes-data-bundle-generator/integration-test-data.tar.bz2?r=&ts=1385413914&use_mirror=freefr" -O integration-test-data.tar.bz2
 - tar jxf integration-test-data.tar.bz2
+
+script:
+# build
+- mvn clean install -DargLine="-Duser.timezone=$TZ"
+
+# executes integration test
+- BUNDLER=$(find target -path 'target/itinerennes-data-bundle-generator-*-dist-pkg/itinerennes-data-bundle-generator/bundler.sh')
+- export JAVA_OPTS="-Duser.timezone=$TZ"
 - $BUNDLER integration-test-data/GTFS-20131031.zip -am 1=2 -k $KEOLIS_API_KEY -o integration-test-data/result
+
 # compare expected output with effective output
 - diff -r integration-test-data/expected-output/schedule-for-stop integration-test-data/result/schedule-for-stop > integration-test-data/schedule-for-stop.diff
 - diff -r  integration-test-data/expected-output/trip-details integration-test-data/result/trip-details > integration-test-data/trip-details.diff
