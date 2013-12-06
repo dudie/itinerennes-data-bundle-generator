@@ -10,7 +10,7 @@ env:
 
 before_script:
 # download integration test data
-- wget "https://downloads.sourceforge.net/project/dudie/itinerennes-data-bundle-generator/integration-test-data.tar.bz2?r=&ts=1385413914&use_mirror=freefr" -O integration-test-data.tar.bz2
+- wget "https://downloads.sourceforge.net/project/dudie/itinerennes-data-bundle-generator/integration-test-data-2.tar.bz2?r=&ts=1386290305&use_mirror=master" -O integration-test-data.tar.bz2
 - tar jxf integration-test-data.tar.bz2
 
 script:
@@ -25,4 +25,5 @@ script:
 # compare expected output with effective output
 - diff -r integration-test-data/expected-output/schedule-for-stop integration-test-data/result/schedule-for-stop > integration-test-data/schedule-for-stop.diff
 - diff -r  integration-test-data/expected-output/trip-details integration-test-data/result/trip-details > integration-test-data/trip-details.diff
-- head -50 integration-test-data/schedule-for-stop.diff integration-test-data/trip-details.diff
+- diff -r  integration-test-data/expected-output/stop integration-test-data/result/stop > integration-test-data/stop.diff
+- head -50 integration-test-data/schedule-for-stop.diff integration-test-data/trip-details.diff integration-test-data/stop.diff
