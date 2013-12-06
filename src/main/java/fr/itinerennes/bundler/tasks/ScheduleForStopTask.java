@@ -7,6 +7,8 @@ import java.io.Writer;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
+import java.util.TimeZone;
 
 import org.apache.commons.io.IOUtils;
 import org.onebusaway.gtfs.model.Route;
@@ -24,7 +26,6 @@ import com.google.gson.Gson;
 
 import fr.itinerennes.api.client.model.ScheduleStopTime;
 import fr.itinerennes.api.client.model.StopSchedule;
-import fr.itinerennes.api.client.model.Time;
 import fr.itinerennes.bundler.gtfs.GtfsAdvancedDao;
 import fr.itinerennes.bundler.tasks.framework.AbstractTask;
 
@@ -66,7 +67,7 @@ public class ScheduleForStopTask extends AbstractTask {
     private void generateScheduleForStop(File output, Stop s, ServiceDate sd) {
 
         final StopSchedule sched = new StopSchedule();
-        sched.setDate(sd.getAsDate(xGtfs.getTimeZone(s.getId().getAgencyId())));
+        sched.setDate(sd.getAsDate());
         sched.setStop(toStop(s));
 
         for (final StopTime st : xGtfs.getStopTimes(s, sd)) {
@@ -110,13 +111,13 @@ public class ScheduleForStopTask extends AbstractTask {
     private ScheduleStopTime toScheduledStopTime(final StopTime gStopTime, final ServiceDate gServiceDate) {
         final ScheduleStopTime sst = new ScheduleStopTime();
         
-        final Calendar a = gServiceDate.getAsCalendar(xGtfs.getTimeZone(gStopTime.getStop().getId().getAgencyId()));
-        final Calendar d = gServiceDate.getAsCalendar(xGtfs.getTimeZone(gStopTime.getStop().getId().getAgencyId()));
+        final Calendar a = gServiceDate.getAsCalendar(TimeZone.getDefault());
+        final Calendar d = gServiceDate.getAsCalendar(TimeZone.getDefault());
         a.add(Calendar.SECOND, gStopTime.getArrivalTime());
         d.add(Calendar.SECOND, gStopTime.getDepartureTime());
         
-        sst.setArrivalTime(new Time(a.getTimeInMillis()));
-        sst.setDepartureTime(new Time(d.getTimeInMillis()));
+        sst.setArrivalTime(new Date(a.getTimeInMillis()));
+        sst.setDepartureTime(new Date(d.getTimeInMillis()));
         sst.setHeadsign(gStopTime.getTrip().getTripHeadsign());
         sst.setRoute(toRoute(gStopTime.getTrip().getRoute()));
         sst.setRouteId(sst.getRoute().getId());

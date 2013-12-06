@@ -7,7 +7,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Writer;
-import java.util.Calendar;
 
 import org.apache.commons.io.IOUtils;
 import org.onebusaway.gtfs.model.Route;
@@ -23,7 +22,6 @@ import org.springframework.stereotype.Component;
 
 import com.google.gson.Gson;
 
-import fr.itinerennes.api.client.model.Time;
 import fr.itinerennes.api.client.model.TripSchedule;
 import fr.itinerennes.api.client.model.TripStopTime;
 import fr.itinerennes.bundler.gtfs.GtfsAdvancedDao;
@@ -75,14 +73,9 @@ public class TripDetailsTask extends AbstractTask {
     }
 
     private TripStopTime toTripStopTime(StopTime st) {
-        final Calendar a = Calendar.getInstance(xGtfs.getTimeZone(st.getStop().getId().getAgencyId()));
-        final Calendar d = Calendar.getInstance(xGtfs.getTimeZone(st.getStop().getId().getAgencyId()));
-        a.add(Calendar.SECOND, st.getArrivalTime());
-        d.add(Calendar.SECOND, st.getDepartureTime());
-        
         final TripStopTime tst = new TripStopTime();
-        tst.setArrivalTime(new Time(st.getArrivalTime() * 1000));
-        tst.setDepartureTime(new Time(st.getDepartureTime() * 1000));
+        tst.setArrivalTime(st.getArrivalTime());
+        tst.setDepartureTime(st.getDepartureTime());
         tst.setStop(toStop(st.getStop()));
         tst.setStopHeadsign(st.getStopHeadsign());
         return tst;
