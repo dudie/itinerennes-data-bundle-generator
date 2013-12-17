@@ -11,6 +11,7 @@ env:
 
 before_install:
 - source params.sh
+- sudo apt-get update -qq
 - sudo apt-get install imagemagick inkscape -qq
 
 before_script:
@@ -52,6 +53,7 @@ before_script:
 - git clone git@github.com:dudie/itinerennes-api.git
 - cd itinerennes-api
 - git checkout data
+- git checkout -b $GTFS_ID
 - cd -
 
 script:
@@ -60,7 +62,7 @@ script:
 - git add .
 - git commit -m "Add data from $GTFS_ID" > commit.log
 - head -50 commit.log && tail -50 commit.log
-- git push origin data
+- git push origin $GTFS_ID
 - cd -
 - ./itinerennes-data-bundle-generator/gen-keolis-icons.sh keolis-icons/original keolis-icons/resized
 
