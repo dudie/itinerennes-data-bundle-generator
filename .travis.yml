@@ -49,11 +49,16 @@ before_script:
 - mvn dependency:copy -Dartifact=fr.itinerennes:itinerennes-data-bundle-generator:1.0-SNAPSHOT:tar.bz2:dist-pkg -D outputDirectory=. -Dmdep.stripClassifier -Dmdep.stripVersion
 - tar jxf itinerennes-data-bundle-generator.tar.bz2
 
-# clone itinerennes-api repository
-- git clone git@github.com:dudie/itinerennes-api.git
+# initialize itinerennes-api repository with new branch
+- git init itinerennes-api
 - cd itinerennes-api
-- git checkout data
-- git checkout -b $GTFS_ID
+- echo "GTFS $GTFS_RELEASE" > README.md
+- echo "=============" >> README.md
+- echo "$GTFS_URL" >> README.md
+- git add README.md
+- git commit -m "Initialize branch for $GTFS_RELEASE"
+- git branch -m $GTFS_RELEASE
+- git remote add origin git@github.com:dudie/itinerennes-api.git
 - cd -
 
 script:
