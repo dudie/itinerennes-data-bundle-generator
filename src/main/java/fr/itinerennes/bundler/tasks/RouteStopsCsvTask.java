@@ -1,8 +1,9 @@
 package fr.itinerennes.bundler.tasks;
 
-import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -14,12 +15,14 @@ import org.onebusaway.gtfs.services.GtfsDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import fr.itinerennes.bundler.tasks.RouteStopsCsvTask.Item;
 import fr.itinerennes.bundler.tasks.framework.AbstractCountedCsvTask;
+import fr.itinerennes.bundler.tasks.framework.CsvTaskException;
 import fr.itinerennes.bundler.tasks.framework.PostExec;
 import fr.itinerennes.bundler.tasks.framework.PreExec;
 
 @Component
-public class RouteStopsCsvTask extends AbstractCountedCsvTask {
+public class RouteStopsCsvTask extends AbstractCountedCsvTask<Item> {
 
     @Autowired
     private GtfsDao gtfsDao;
@@ -40,20 +43,27 @@ public class RouteStopsCsvTask extends AbstractCountedCsvTask {
             routesToStops.get(routeId).add(stopId);
         }
     }
-    
+
     @PostExec
     public void release() {
         routesToStops.clear();
     }
 
     @Override
-    protected void generateLines() throws IOException {
+    protected List<Item> getDataList() throws CsvTaskException {
+        final List<Item> relations = new ArrayList<Item>();
         for (final Entry<String, Set<String>> route : routesToStops.entrySet()) {
             final String routeId = route.getKey();
             for (final String stopId : route.getValue()) {
-                writeLine(routeId, stopId);
+                relations.add(new Item(routeId, stopId));
             }
         }
+        return relations;
+    }
+
+    @Override
+    protected Object[] toCSV(final Item item) throws CsvTaskException {
+        return new Object[] { item.route, item.stop };
     }
 
     private static class HashSetFactory implements Factory {
@@ -63,5 +73,15 @@ public class RouteStopsCsvTask extends AbstractCountedCsvTask {
             return new HashSet<String>();
         }
 
+    }
+
+    static class Item {
+        private String route;
+        private String stop;
+
+        public Item(final String route, final String stop) {
+            this.route = route;
+            this.stop = stop;
+        }
     }
 }

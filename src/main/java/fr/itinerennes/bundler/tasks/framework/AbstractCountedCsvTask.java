@@ -7,12 +7,17 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
+import java.util.List;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.LineIterator;
 
-public abstract class AbstractCountedCsvTask extends AbstractCsvTask {
+/**
+ * @author Jeremie Huchet
+ */
+public abstract class AbstractCountedCsvTask<T> extends AbstractCsvTask<T> {
 
     private int lineCount = 0;
 
@@ -48,8 +53,11 @@ public abstract class AbstractCountedCsvTask extends AbstractCsvTask {
     }
 
     @Override
-    protected void writeLine(Object... values) throws IOException {
-        lineCount++;
-        super.writeLine(values);
+    protected final List<T> getData() throws CsvTaskException {
+        final List<T> data = getDataList();
+        this.lineCount = CollectionUtils.size(data);
+        return data;
     }
+
+    protected abstract List<T> getDataList() throws CsvTaskException;
 }

@@ -7,6 +7,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
+import java.util.List;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.IOUtils;
@@ -21,7 +22,7 @@ import fr.itinerennes.onebusaway.bundle.tasks.GenerateMarkersCsvTask;
  * 
  * @author Jeremie Huchet
  */
-public abstract class AbstractCsvTask extends AbstractTask {
+public abstract class AbstractCsvTask<T> extends AbstractTask {
 
     /** The event logger. */
     private static final Logger LOGGER = LoggerFactory.getLogger(GenerateMarkersCsvTask.class);
@@ -65,11 +66,15 @@ public abstract class AbstractCsvTask extends AbstractTask {
     protected final void execute() {
         try {
             out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(getOutputFile()), CHARSET));
-            generateLines();
+            for (final T data : getData()) {
+                writeLine(toCSV(data));
+            }
         } catch (final FileNotFoundException e) {
             LOGGER.error("output file not found", e);
         } catch (final IOException e) {
             LOGGER.error("can't write to output file", e);
+        } catch (final CsvTaskException e) {
+            LOGGER.error("can't generate CSV data", e);
         } finally {
             IOUtils.closeQuietly(out);
         }
@@ -86,7 +91,7 @@ public abstract class AbstractCsvTask extends AbstractTask {
      *            the values to be written
      * @throws IOException
      */
-    protected void writeLine(final Object... values) throws IOException {
+    private void writeLine(final Object... values) throws IOException {
         final StringBuilder csv = new StringBuilder();
         for (final Object v : values) {
             csv.append(v).append(';');
@@ -96,7 +101,12 @@ public abstract class AbstractCsvTask extends AbstractTask {
     }
 
     /**
-     * Subclasses should invoke {@link #writeLine(Object...)}.
+     * Subclasses should implement this method and return one bean for each CSV line to produce.
      */
-    protected abstract void generateLines() throws IOException;
+    protected abstract List<T> getData() throws CsvTaskException;
+
+    /**
+     * Subclasses should implement this method to define how to convert one bean to CSV values.
+     */
+    protected abstract Object[] toCSV(T data) throws CsvTaskException;
 }
