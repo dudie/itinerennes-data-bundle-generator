@@ -3,7 +3,11 @@ package fr.itinerennes.bundler.cli;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -14,6 +18,7 @@ import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import fr.itinerennes.bundler.tasks.framework.AbstractTask;
@@ -33,7 +38,13 @@ public class GtfsItinerennesBundler {
     private File output;
 
     @Option(name = "-am", aliases = "--agency-mapping", usage = "agency mapping: '1=2' means agency id '1' will be translated to '2'", required = false, metaVar = "AGENCY_MAPPING")
-    private Map<String, String> agencyMapping;
+    private Map<String, String> agencyMapping = new HashMap<String, String>();
+
+    @Option(name = "-t", aliases = "--tasks", usage = "tasks to run", required = false, metaVar = "TASKS")
+    private List<String> tasks = new ArrayList<String>();
+
+    @Option(name = "-l", aliases = "--list-tasks", usage = "list available tasks", required = false)
+    private boolean listTasks;
 
     @Option(name = "-h", aliases = "--help", usage = "this help", required = false)
     private boolean help;
@@ -60,9 +71,14 @@ public class GtfsItinerennesBundler {
 
             ctx = new ClassPathXmlApplicationContext(new String[] { "classpath:/application-context.xml" }, bootCtx);
             LOGGER.info("Application context initialization finished");
-            final Collection<AbstractTask> tasks = ctx.getBeansOfType(AbstractTask.class).values();
+
+            if (main.listTasks) {
+                main.listTasksAndExit(ctx);
+            }
+
+            final List<AbstractTask> selectedTasks = main.verifySelectedTasksExists(ctx);
             LOGGER.info("Start tasks execution...");
-            main.execute(tasks);
+            main.execute(selectedTasks);
             LOGGER.info("Tasks execution finished");
         } finally {
             IOUtils.closeQuietly(ctx);
@@ -117,16 +133,47 @@ public class GtfsItinerennesBundler {
         }
     }
 
+    private void listTasksAndExit(final ClassPathXmlApplicationContext context) {
+        System.out.println("Available tasks:");
+        for (final String tName : context.getBeanNamesForType(AbstractTask.class)) {
+            System.out.printf(" - %s\n", tName);
+        }
+        System.exit(0);
+    }
+
+    private List<AbstractTask> verifySelectedTasksExists(final ApplicationContext ctx) {
+        if (tasks.isEmpty()) {
+            tasks.addAll(Arrays.asList(ctx.getBeanNamesForType(AbstractTask.class)));
+        }
+        final List<AbstractTask> selectedTasks = new ArrayList<AbstractTask>();
+        final List<String> missingTasks = new ArrayList<String>();
+        for (final String tName : tasks) {
+            if (ctx.containsBean(tName)) {
+                selectedTasks.add(ctx.getBean(tName, AbstractTask.class));
+                LOGGER.error("Added task '{}' in execution queue", tName);
+            } else {
+                missingTasks.add(tName);
+                LOGGER.error("Task '{}' doesn't exist", tName);
+            }
+        }
+        if (!missingTasks.isEmpty()) {
+            System.exit(1);
+        }
+        return selectedTasks;
+    }
+
     private <T extends Runnable> void execute(final Collection<T> tasks) throws IOException {
         // execute tasks
         for (final Runnable t : tasks) {
+            LOGGER.info("Running task {}...", t.getClass().getSimpleName());
             t.run();
+            LOGGER.info("Task {} finished", t.getClass().getSimpleName());
         }
     }
 
     private void printUsageAndExit(final CmdLineParser parser, final int status) {
 
-        System.err.println(String.format("java %s <GTFS> -k <API_KEY> [-o <OUTPUT>] [-am <AGENCY_MAPPING>]", this.getClass().getName()));
+        System.err.println(String.format("java %s <GTFS> -k <API_KEY> [-t TASKS] [-o <OUTPUT>] [-am <AGENCY_MAPPING>]", this.getClass().getName()));
         parser.printUsage(System.err);
         System.exit(status);
     }
