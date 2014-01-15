@@ -73,7 +73,7 @@ public class MarkersCsvTask extends AbstractCountedCsvTask {
 
         for (final BikeStation bike : bikeStations) {
             final String name = StringUtils.capitalize(bike.getName());
-            writeLine("BIKE", bike.getId(), bike.getLongitude(), bike.getLatitude(), name, index(name), "");
+            writeLine("BIKE", bike.getId(), (int) (bike.getLatitude() * 1E6), (int) (bike.getLongitude() * 1E6), name, index(name), "");
         }
 
         for (final SubwayStation subway : subwayStations) {
