@@ -67,7 +67,7 @@ script:
 - git add .
 - git commit -m "Add data from $GTFS_ID" > commit.log
 - head -50 commit.log && tail -50 commit.log
-- git push origin $GTFS_ID
+- git push origin $GTFS_RELEASE
 - cd -
 - ./itinerennes-data-bundle-generator/gen-keolis-icons.sh keolis-icons/original keolis-icons/resized
 
