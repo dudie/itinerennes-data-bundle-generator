@@ -50,15 +50,15 @@ before_script:
 - tar jxf itinerennes-data-bundle-generator.tar.bz2
 
 # initialize itinerennes-api repository with new branch
-- git init itinerennes-api
+- git clone -b data git@github.com:dudie/itinerennes-api.git itinerennes-api
 - cd itinerennes-api
+- git checkout -b $GTFS_RELEASE
+- git rm -r ./* > /tmp/commit.log
+- head -10 /tmp/commit.log && tail -10 /tmp/commit.log
 - echo "GTFS $GTFS_RELEASE" > README.md
 - echo "=============" >> README.md
 - echo "$GTFS_URL" >> README.md
 - git add README.md
-- git commit -m "Initialize branch for $GTFS_RELEASE"
-- git branch -m $GTFS_RELEASE
-- git remote add origin git@github.com:dudie/itinerennes-api.git
 - cd -
 
 script:
@@ -70,4 +70,3 @@ script:
 - git push origin $GTFS_RELEASE
 - cd -
 - ./itinerennes-data-bundle-generator/gen-keolis-icons.sh keolis-icons/original keolis-icons/resized
-
