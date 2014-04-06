@@ -150,7 +150,7 @@ public class GtfsItinerennesBundler {
         for (final String tName : tasks) {
             if (ctx.containsBean(tName)) {
                 selectedTasks.add(ctx.getBean(tName, AbstractTask.class));
-                LOGGER.error("Added task '{}' in execution queue", tName);
+                LOGGER.info("Added task '{}' in execution queue", tName);
             } else {
                 missingTasks.add(tName);
                 LOGGER.error("Task '{}' doesn't exist", tName);
