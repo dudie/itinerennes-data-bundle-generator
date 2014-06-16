@@ -81,6 +81,7 @@ script:
 # generate APK resources
 - mkdir -p keolis-icons/original keolis-icons/resized
 - ./itinerennes-data-bundle-generator/gen-keolis-icons.sh keolis-icons/original keolis-icons/resized
+- cp keolis-icons/resized/*.png itinerennes-android/itinerennes/res/drawable
 - cp itinerennes-api/markers.csv itinerennes-api/routes_stops.csv itinerennes-api/routes.csv itinerennes-android/itinerennes/res/raw
 - cd itinerennes-android
 - git add .
