@@ -30,6 +30,7 @@ public abstract class AbstractTask implements Runnable {
                 m.invoke(this);
             } catch (final Exception e) {
                 final String msg = String.format("Unable to invoke task method: %s#%s()", this.getClass().getName(), m.getName());
+                LOGGER.error(msg, e);
                 throw new IllegalStateException(msg, e);
             }
         }

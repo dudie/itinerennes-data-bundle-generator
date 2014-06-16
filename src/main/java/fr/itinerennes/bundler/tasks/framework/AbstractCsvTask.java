@@ -10,6 +10,7 @@ import java.nio.charset.Charset;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,9 +65,13 @@ public abstract class AbstractCsvTask<T> extends AbstractTask {
      */
     @Override
     protected final void execute() {
+        final File outFile = getOutputFile();
+        LOGGER.debug("Writing output to {}", outFile);
         try {
-            out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(getOutputFile()), CHARSET));
-            for (final T data : getData()) {
+            out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outFile), CHARSET));
+            final List<T> lines = getData();
+            LOGGER.debug("Writing {} lines to {}", CollectionUtils.size(lines), outFile);
+            for (final T data : lines) {
                 writeLine(toCSV(data));
             }
         } catch (final FileNotFoundException e) {

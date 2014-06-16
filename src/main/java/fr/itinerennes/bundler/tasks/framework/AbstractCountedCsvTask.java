@@ -13,12 +13,16 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.LineIterator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Jeremie Huchet
  */
 public abstract class AbstractCountedCsvTask<T> extends AbstractCsvTask<T> {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractCountedCsvTask.class);
+    
     private int lineCount = 0;
 
     public AbstractCountedCsvTask(String filename) {
@@ -27,12 +31,14 @@ public abstract class AbstractCountedCsvTask<T> extends AbstractCsvTask<T> {
 
     @PostExec
     public void prependLineCount() throws IOException {
-        
+
+        LOGGER.debug("Inserting line count at file head: {}", lineCount);
+
         final File output = getOutputFile();
         final File source = File.createTempFile("itr-", output.getName(), output.getParentFile());
         source.delete();
         FileUtils.moveFile(output, source);
-        
+
         InputStream from = null;
         BufferedWriter to = null;
         try {
