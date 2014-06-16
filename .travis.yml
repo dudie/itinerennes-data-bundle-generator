@@ -5,7 +5,7 @@ branches:
 env:
   global:
   # $KEY
-  - secure: "B+46iFiWaZAw92r5sN4fyRVPNeJhtiPjEUTbMmFKf/eMUIELXCnZfnezZzeZq4XtmroUbuCMh0kM42G101X3HLzcTCzQ2q0FiDIX5h6zFWPidHRlB24dEd1HC9qPWC9eCUGY/s1cXgd1v7GR1zFOulxo7/UX41Jen0t36fTmVR0="
+  - secure: "L+xoBZ3nA8i/n8zEA6PuNJSXeuKUs+1VpQEycj7bUzvays4GMhwfokjEpn6e0uwpCvmUvc9JG9kLQuIhK8yoHex9Qwh07nh2cxQT20KTJs+DjodBTDwz6vVsilNgka7XKx0QLR2eojvnAhbRJdu8T/eNUJMZgaO8vpUfeQZpHvM="
   # $KEOLIS_API_KEY
   - secure: "K1W2JHG2uIhRGc9Kr5OjfCyA6DFflrZkj45yMoc8NuFoMMNyS8Z9or69Zi6J6z+q8QYmZzcq3c6mSNaiK/BHMulqIWfRoOAbKSg/S/3ZhaDMSwKbHDWjvAumw62vtdj9PK7woBtaaX+Y63Bwd70i1tmAp1V6gvkt2Oq7TGfWPxk="
 
