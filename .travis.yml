@@ -45,8 +45,9 @@ before_script:
 - unzip keolis-icons.zip -d keolis-icons/original
 
 # download itinerennes data bundle generator
-- mvn dependency:get -Dartifact=fr.itinerennes:itinerennes-data-bundle-generator:1.0-SNAPSHOT:tar.bz2:dist-pkg -DremoteRepositories=https://raw.github.com/dudie/maven-repository/snapshots
-- mvn dependency:copy -Dartifact=fr.itinerennes:itinerennes-data-bundle-generator:1.0-SNAPSHOT:tar.bz2:dist-pkg -D outputDirectory=. -Dmdep.stripClassifier -Dmdep.stripVersion
+#- mvn dependency:get -Dartifact=fr.itinerennes:itinerennes-data-bundle-generator:1.0:tar.bz2:dist-pkg -DremoteRepositories=https://raw.github.com/dudie/maven-repository/releases
+#- mvn dependency:copy -Dartifact=fr.itinerennes:itinerennes-data-bundle-generator:1.0:tar.bz2:dist-pkg -D outputDirectory=. -Dmdep.stripClassifier -Dmdep.stripVersion
+- wget -O itinerennes-data-bundle-generator.tar.bz2 https://raw.github.com/dudie/maven-repository/releases/fr/itinerennes/itinerennes-data-bundle-generator/1.0/itinerennes-data-bundle-generator-1.0-dist-pkg.tar.bz2
 - tar jxf itinerennes-data-bundle-generator.tar.bz2
 
 # initialize itinerennes-api repository with new branch
