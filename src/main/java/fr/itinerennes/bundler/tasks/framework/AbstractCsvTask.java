@@ -7,6 +7,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -30,6 +33,9 @@ public abstract class AbstractCsvTask<T> extends AbstractTask {
 
     /** The UTF-8 charset. */
     public static final Charset CHARSET = Charset.forName("UTF-8");
+
+    /** The empty string. */
+    protected static final String EMPTY = "";
 
     /** The name of the generated file. */
     private final String filename;
@@ -69,10 +75,31 @@ public abstract class AbstractCsvTask<T> extends AbstractTask {
         LOGGER.debug("Writing output to {}", outFile);
         try {
             out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outFile), CHARSET));
-            final List<T> lines = getData();
-            LOGGER.debug("Writing {} lines to {}", CollectionUtils.size(lines), outFile);
-            for (final T data : lines) {
-                writeLine(toCSV(data));
+            final List<T> data = getData();
+            LOGGER.debug("Writing {} lines to {}", CollectionUtils.size(data), outFile);
+            final List<Object[]> lines = new ArrayList<Object[]>(data.size());
+            for (final T d : data) {
+                lines.add(toCSV(d));
+            }
+            Collections.sort(lines, new Comparator<Object[]>() {
+
+                @Override
+                public int compare(final Object[] o1, final Object[] o2) {
+                    return toString(o1).compareTo(toString(o2));
+                }
+
+                private String toString(final Object[] data) {
+                    final StringBuilder s = new StringBuilder();
+                    for (final Object o : data) {
+                        if (o != null) {
+                            s.append(o.toString());
+                        }
+                    }
+                    return s.toString();
+                }
+            });
+            for (final Object[] lineData : lines) {
+                writeLine(lineData);
             }
         } catch (final FileNotFoundException e) {
             LOGGER.error("output file not found", e);
