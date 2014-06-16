@@ -88,7 +88,7 @@ public class MarkersCsvTask extends AbstractCountedCsvTask<Marker> {
 
     @Override
     protected Object[] toCSV(final Marker m) throws CsvTaskException {
-        return new Object[] { m.type, m.id, m.lon, m.lat, m.name, m.indexedName };
+        return new Object[] { m.type, m.id, m.lat, m.lon, m.name, m.indexedName };
     }
 
     static class Marker {
