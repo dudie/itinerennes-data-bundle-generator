@@ -32,5 +32,5 @@ test -d $2 || usage || exit 3
 
 export TARGET=$2
 
-find $1 -iname '*.png' -exec sh -c 'cp {} $TARGET/z_ic_line_`basename {} | sed "s/^\.\///g" | sed s/^L//g | sed "s/^0*//g"` ' \;
+find $1 -iname '*.png' -exec sh -c 'cp {} $TARGET/z_ic_line_`basename {} | sed "s/^\.\///g" | sed s/^L//g | sed "s/^0*//g" | tr [:upper:] [:lower:]` ' \;
 find $2 -iname 'z_ic_line_*.png' -exec mogrify -resize "72x72" {} \;
