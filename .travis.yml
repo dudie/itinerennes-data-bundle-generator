@@ -47,7 +47,7 @@ before_script:
 # download itinerennes data bundle generator
 #- mvn dependency:get -Dartifact=fr.itinerennes:itinerennes-data-bundle-generator:1.0:tar.bz2:dist-pkg -DremoteRepositories=https://raw.github.com/dudie/maven-repository/releases
 #- mvn dependency:copy -Dartifact=fr.itinerennes:itinerennes-data-bundle-generator:1.0:tar.bz2:dist-pkg -D outputDirectory=. -Dmdep.stripClassifier -Dmdep.stripVersion
-- wget -O itinerennes-data-bundle-generator.tar.bz2 https://raw.github.com/dudie/maven-repository/releases/fr/itinerennes/itinerennes-data-bundle-generator/1.0/itinerennes-data-bundle-generator-1.0-dist-pkg.tar.bz2
+- wget -O itinerennes-data-bundle-generator.tar.bz2 https://raw.github.com/dudie/maven-repository/releases/fr/itinerennes/itinerennes-data-bundle-generator/1.1/itinerennes-data-bundle-generator-1.1-dist-pkg.tar.bz2
 - tar jxf itinerennes-data-bundle-generator.tar.bz2
 
 # initialize itinerennes-api repository with new branch
