@@ -39,11 +39,15 @@ import org.onebusaway.gtfs.model.StopTime;
 import org.onebusaway.gtfs.model.Trip;
 import org.onebusaway.gtfs.model.calendar.ServiceDate;
 import org.onebusaway.gtfs.services.GtfsRelationalDao;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 @Repository
 public class GtfsAdvancedDao {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(GtfsAdvancedDao.class);
 
     private GtfsRelationalDao gtfs;
 
@@ -121,18 +125,11 @@ public class GtfsAdvancedDao {
                 final ServiceDate start = sc.getStartDate();
                 final ServiceDate end = sc.getEndDate();
 
-                final List<ServiceCalendarDate> exceptions = gtfs.getCalendarDatesForServiceId(serviceId);
-                final List<ServiceDate> additions = new ArrayList<ServiceDate>();
-                final List<ServiceDate> removals = new ArrayList<ServiceDate>();
-                for (final ServiceCalendarDate scd : exceptions) {
-                    if (1 == scd.getExceptionType()) {
-                        additions.add(scd.getDate());
-                    } else if (2 == scd.getExceptionType()) {
-                        removals.add(scd.getDate());
-                    }
-                }
-
-                if (start.compareTo(date) <= 0 && end.compareTo(date) >= 0 && (!removals.contains(date) || additions.contains(date))) {
+                if (isAdditionalException(date, st.getTrip())) {
+                    return true;
+                } else if (isRemovalException(date, sc)) {
+                    return false;
+                } else if (start.compareTo(date) <= 0 && end.compareTo(date) >= 0) {
                     final String agencyId = stop.getId().getAgencyId();
                     final TimeZone tz = GtfsAdvancedDao.this.getTimeZone(agencyId);
                     return DayOfWeek.isSameDay(date.getAsCalendar(tz), sc);
@@ -179,5 +176,33 @@ public class GtfsAdvancedDao {
     public TimeZone getTimeZone(final String agencyId) {
         final Agency agency = gtfs.getAgencyForId(agencyId);
         return TimeZone.getTimeZone(agency.getTimezone());
+    }
+
+    public List<ServiceCalendarDate> getAdditionalExceptionsForDate(final ServiceDate date) {
+        final List<ServiceCalendarDate> exceptions = new ArrayList<ServiceCalendarDate>();
+        for (final ServiceCalendarDate scd : gtfs.getAllCalendarDates()) {
+            if (1 == scd.getExceptionType() && scd.getDate().equals(date)) {
+                exceptions.add(scd);
+            }
+        }
+        return exceptions;
+    }
+
+    public boolean isRemovalException(final ServiceDate date, final ServiceCalendar calendar) {
+        return isException(2, date, calendar.getServiceId());
+    }
+
+    public boolean isAdditionalException(final ServiceDate date, final Trip trip) {
+        return isException(1, date, trip.getServiceId());
+    }
+
+    private boolean isException(final int exceptionType, final ServiceDate date, final AgencyAndId serviceId) {
+        final List<ServiceDate> exceptions = new ArrayList<ServiceDate>();
+        for (final ServiceCalendarDate scd : gtfs.getCalendarDatesForServiceId(serviceId)) {
+            if (exceptionType == scd.getExceptionType()) {
+                exceptions.add(scd.getDate());
+            }
+        }
+        return exceptions.contains(date);
     }
 }

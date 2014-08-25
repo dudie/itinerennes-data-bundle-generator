@@ -35,8 +35,10 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.onebusaway.gtfs.model.AgencyAndId;
+import org.onebusaway.gtfs.model.ServiceCalendar;
 import org.onebusaway.gtfs.model.Stop;
 import org.onebusaway.gtfs.model.StopTime;
+import org.onebusaway.gtfs.model.Trip;
 import org.onebusaway.gtfs.model.calendar.ServiceDate;
 import org.onebusaway.gtfs.services.GtfsRelationalDao;
 
@@ -98,5 +100,33 @@ public class GtfsAdvancedDaoTest {
     @Test
     public void testGetTimeZone() {
         assertThat(advancedDao.getTimeZone("1")).isEqualTo(TimeZone.getTimeZone("Europe/Paris"));
+    }
+
+    @Test
+    public void testIsAdditionalException() {
+        final ServiceDate date = new ServiceDate(2012, 5, 28);
+
+        final Trip notAnException = gtfsDao.getTripForId(new AgencyAndId("1", "104"));
+        assertThat(advancedDao.isAdditionalException(date, notAnException)).isFalse();
+
+        final Trip isARemovalException = gtfsDao.getTripForId(new AgencyAndId("1", "1333"));
+        assertThat(advancedDao.isAdditionalException(date, isARemovalException)).isFalse();
+
+        final Trip isAnException = gtfsDao.getTripForId(new AgencyAndId("1", "21966"));
+        assertThat(advancedDao.isAdditionalException(date, isAnException)).isTrue();
+    }
+
+    @Test
+    public void testIsRemovalException() {
+        final ServiceDate date = new ServiceDate(2012, 5, 28);
+
+        final ServiceCalendar notAnException = gtfsDao.getCalendarForServiceId(new AgencyAndId("1", "16"));
+        assertThat(advancedDao.isRemovalException(date, notAnException)).isFalse();
+
+        final ServiceCalendar isAnAdditionalException = gtfsDao.getCalendarForServiceId(new AgencyAndId("1", "1"));
+        assertThat(advancedDao.isRemovalException(date, isAnAdditionalException)).isFalse();
+
+        final ServiceCalendar isAnException = gtfsDao.getCalendarForServiceId(new AgencyAndId("1", "10-12-24-6"));
+        assertThat(advancedDao.isRemovalException(date, isAnException)).isTrue();
     }
 }
