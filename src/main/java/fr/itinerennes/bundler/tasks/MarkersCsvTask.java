@@ -136,7 +136,7 @@ public class MarkersCsvTask extends AbstractCountedCsvTask<Marker> {
             this.id = bike.getId();
             this.lon = toIntE6(bike.getLongitude());
             this.lat = toIntE6(bike.getLatitude());
-            this.name = bike.getName();
+            this.name = StringUtils.capitalize(bike.getName());
             this.indexedName = index(this.name);
         }
 
@@ -145,7 +145,7 @@ public class MarkersCsvTask extends AbstractCountedCsvTask<Marker> {
             this.id = subway.getId();
             this.lon = toIntE6(subway.getLongitude());
             this.lat = toIntE6(subway.getLatitude());
-            this.name = subway.getName();
+            this.name = StringUtils.capitalize(subway.getName());
             this.indexedName = index(this.name);
         }
 
