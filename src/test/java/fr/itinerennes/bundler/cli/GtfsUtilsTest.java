@@ -21,15 +21,13 @@ package fr.itinerennes.bundler.cli;
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * [/license]
  */
-import static org.fest.assertions.Assertions.*;
-import static org.junit.Assert.*;
+import static org.fest.assertions.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -44,7 +42,6 @@ import org.onebusaway.gtfs.services.GtfsRelationalDao;
 
 import fr.itinerennes.bundler.gtfs.GtfsException;
 import fr.itinerennes.bundler.gtfs.GtfsUtils;
-import fr.itinerennes.bundler.gtfs.keolis.KeolisGtfsDaoImpl;
 
 public final class GtfsUtilsTest {
 
@@ -97,7 +94,7 @@ public final class GtfsUtilsTest {
     @Test
     public void testGtfsFile() throws GtfsException {
 
-        final KeolisGtfsDaoImpl gtfsDao = GtfsUtils.load(gtfsFile);
+        final GtfsRelationalDao gtfsDao = GtfsUtils.load(gtfsFile);
 
         assertEquals(1, gtfsDao.getAllAgencies().size());
         assertEquals(14, gtfsDao.getAllCalendarDates().size());
@@ -114,7 +111,6 @@ public final class GtfsUtilsTest {
         assertEquals(182666, gtfsDao.getAllStopTimes().size());
         assertEquals(0, gtfsDao.getAllTransfers().size());
         assertEquals(6809, gtfsDao.getAllTrips().size());
-        assertEquals(23, gtfsDao.getAllAccessibleRoutes().size());
 
     }
 

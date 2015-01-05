@@ -23,17 +23,21 @@ package fr.itinerennes.bundler.tasks;
  */
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.onebusaway.gtfs.model.Route;
 import org.onebusaway.gtfs.model.Stop;
+import org.onebusaway.gtfs.model.Trip;
+import org.onebusaway.gtfs.services.GtfsDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import fr.itinerennes.bundler.gtfs.dao.KeolisGtfsDao;
+import fr.itinerennes.bundler.tasks.AccessibilityCsvTask.AccessibleItem;
 import fr.itinerennes.bundler.tasks.framework.AbstractCsvTask;
 import fr.itinerennes.bundler.tasks.framework.CsvTaskException;
-import fr.itinerennes.bundler.tasks.AccessibilityCsvTask.AccessibleItem;
 
 /**
  * Generates the accessibility.csv file.
@@ -43,8 +47,10 @@ import fr.itinerennes.bundler.tasks.AccessibilityCsvTask.AccessibleItem;
 @Component
 public class AccessibilityCsvTask extends AbstractCsvTask<AccessibleItem> {
 
+    private static final int WHEELCHAIR_ACCESSIBLE = 1;
+
     @Autowired
-    private KeolisGtfsDao gtfs;
+    private GtfsDao gtfs;
 
     public AccessibilityCsvTask() {
         super("accessibility.csv");
@@ -64,8 +70,20 @@ public class AccessibilityCsvTask extends AbstractCsvTask<AccessibleItem> {
                 data.add(new AccessibleItem(stop));
             }
         }
-        for (final Route route : gtfs.getAllAccessibleRoutes()) {
-            data.add(new AccessibleItem(route));
+        final Map<Route, Boolean> accessibleRoutes = new HashMap<Route, Boolean>();
+        for (final Trip trip : gtfs.getAllTrips()) {
+            if (WHEELCHAIR_ACCESSIBLE == trip.getWheelchairAccessible()) {
+                if (!accessibleRoutes.containsKey(trip.getRoute())) {
+                    accessibleRoutes.put(trip.getRoute(), true);
+                }
+            } else {
+                accessibleRoutes.put(trip.getRoute(), false);
+            }
+        }
+        for (final Entry<Route, Boolean> r : accessibleRoutes.entrySet()) {
+            if (r.getValue()) {
+                data.add(new AccessibleItem(r.getKey()));
+            }
         }
         return data;
     }
